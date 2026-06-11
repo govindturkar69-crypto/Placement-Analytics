@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Placement Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📊 Dashboard</h1>
+  <p>Welcome back, {{ user_name }}! Here's your placement overview.</p>
+</div>
+
+<!-- Stat Cards -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-icon">👨‍🎓</div>
+    <div class="stat-value">{{ total_students }}</div>
+    <div class="stat-label">Total Students</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-value">{{ total_placements }}</div>
+    <div class="stat-label">Students Placed</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-icon">🏢</div>
+    <div class="stat-value">{{ total_companies }}</div>
+    <div class="stat-label">Companies Visited</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-icon">💰</div>
+    <div class="stat-value">{{ avg_package }} LPA</div>
+    <div class="stat-label">Avg Package</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-icon">🏆</div>
+    <div class="stat-value">{{ max_package }} LPA</div>
+    <div class="stat-label">Highest Package</div>
+  </div>
+</div>
+
+<!-- Recent Placements -->
+<div class="card">
+  <div class="card-title">🕐 Recent Placements</div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Company</th>
+          <th>Package</th>
+          <th>Year</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in recent %}
+        <tr>
+          <td><strong>{{ row[0] }}</strong></td>
+          <td>{{ row[1] }}</td>
+          <td>💰 {{ row[2] }} LPA</td>
+          <td>{{ row[3] }}</td>
+          <td><span class="badge badge-success">{{ row[4] }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:32px">No placement records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Quick Links -->
+<div style="display:flex;gap:12px;flex-wrap:wrap;">
+  <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
+  <a href="{{ url_for('add_company') }}" class="btn-add" style="background:linear-gradient(135deg,#10b981,#059669)">➕ Add Company</a>
+  <a href="{{ url_for('add_placement') }}" class="btn-add" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">✅ Record Placement</a>
+  <a href="{{ url_for('analytics') }}" class="btn-add" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📈 View Analytics</a>
+</div>
+{% endblock %}

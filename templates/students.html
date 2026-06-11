@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Students – Placement Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>👨‍🎓 Students</h1>
+  <p>Manage all registered students</p>
+</div>
+
+<div class="card">
+  <div class="action-bar">
+    <div class="card-title" style="margin-bottom:0">All Students ({{ students|length }})</div>
+    <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Name</th><th>Email</th><th>Branch</th><th>CGPA</th><th>Skills</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>{{ s[0] }}</td>
+          <td><strong>{{ s[1] }}</strong></td>
+          <td>{{ s[2] }}</td>
+          <td><span class="badge badge-info">{{ s[3] }}</span></td>
+          <td>
+            <span class="badge {% if s[4] >= 8.5 %}badge-success{% elif s[4] >= 7.0 %}badge-warning{% else %}badge-muted{% endif %}">
+              {{ s[4] }}
+            </span>
+          </td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s[5] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No students found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

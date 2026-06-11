@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Add Student – Placement Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>➕ Add Student</h1>
+  <p>Register a new student in the system</p>
+</div>
+
+<div class="card" style="max-width:700px">
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="name" class="form-control" placeholder="Govind Sharma">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" class="form-control" placeholder="govind@example.com">
+    </div>
+    <div class="form-group">
+      <label>Branch</label>
+      <select id="branch" class="form-control">
+        <option>CSE</option><option>IT</option><option>ECE</option>
+        <option>EEE</option><option>Mechanical</option><option>Civil</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>CGPA</label>
+      <input type="number" id="cgpa" class="form-control" step="0.1" min="0" max="10" placeholder="8.5">
+    </div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label>Skills (comma separated)</label>
+      <input type="text" id="skills" class="form-control" placeholder="Python, Java, MySQL, React">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" class="form-control" placeholder="Set login password">
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn-primary btn-sm" style="width:auto;padding:11px 24px" onclick="submitStudent()">Save Student</button>
+    <a href="{{ url_for('students') }}" class="btn-outline">Cancel</a>
+  </div>
+</div>
+
+<script>
+function submitStudent() {
+  const fields = ['name','email','branch','cgpa','skills','password'];
+  const form = document.createElement('form');
+  form.method='POST'; form.action='/add_student';
+  fields.forEach(f => {
+    const inp = document.createElement('input');
+    inp.type='hidden'; inp.name=f; inp.value=document.getElementById(f).value;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form); form.submit();
+}
+</script>
+{% endblock %}

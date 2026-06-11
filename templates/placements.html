@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Placements – Placement Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>✅ Placements</h1>
+  <p>All placement records</p>
+</div>
+
+<div class="card">
+  <div class="action-bar">
+    <div class="card-title" style="margin-bottom:0">All Records ({{ placements|length }})</div>
+    <a href="{{ url_for('add_placement') }}" class="btn-add">✅ Record Placement</a>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Student</th><th>Company</th><th>Package</th><th>Year</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for p in placements %}
+        <tr>
+          <td>{{ p[0] }}</td>
+          <td><strong>{{ p[1] }}</strong></td>
+          <td>{{ p[2] }}</td>
+          <td><span class="badge badge-success">💰 {{ p[3] }} LPA</span></td>
+          <td>{{ p[4] }}</td>
+          <td><span class="badge badge-success">{{ p[5] }}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No placement records yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

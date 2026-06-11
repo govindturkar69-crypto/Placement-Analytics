@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – Placement Analytics</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">🎓</div>
+      <h1>Placement Analytics</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="email" id="email" class="form-control" placeholder="govind@example.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
+      </div>
+      <button class="btn-primary" onclick="submitLogin()">Sign In →</button>
+    </div>
+
+    <p style="text-align:center;margin-top:20px;font-size:13px;color:#94a3b8;">
+      Demo: govind@example.com / admin123
+    </p>
+  </div>
+</div>
+
+<script>
+function submitLogin() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/login';
+  ['email','password'].forEach((k,i) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = [email,password][i];
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+</body>
+</html>

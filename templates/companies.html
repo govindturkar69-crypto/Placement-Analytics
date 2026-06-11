@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Companies – Placement Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>🏢 Companies</h1>
+  <p>Companies that visited for placements</p>
+</div>
+
+<div class="card">
+  <div class="action-bar">
+    <div class="card-title" style="margin-bottom:0">All Companies ({{ companies|length }})</div>
+    <a href="{{ url_for('add_company') }}" class="btn-add">➕ Add Company</a>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Company</th><th>Package (LPA)</th><th>Required Skills</th><th>Visit Date</th></tr>
+      </thead>
+      <tbody>
+        {% for c in companies %}
+        <tr>
+          <td>{{ c[0] }}</td>
+          <td><strong>{{ c[1] }}</strong></td>
+          <td>
+            <span class="badge {% if c[2] >= 20 %}badge-success{% elif c[2] >= 10 %}badge-warning{% else %}badge-info{% endif %}">
+              💰 {{ c[2] }} LPA
+            </span>
+          </td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c[3] }}</td>
+          <td>{{ c[4] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:32px">No companies found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Record Placement – Placement Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>✅ Record Placement</h1>
+  <p>Record a student placement</p>
+</div>
+
+<div class="card" style="max-width:600px">
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Student</label>
+      <select id="student_id" class="form-control">
+        {% for s in students %}
+        <option value="{{ s[0] }}">{{ s[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Company</label>
+      <select id="company_id" class="form-control">
+        {% for c in companies %}
+        <option value="{{ c[0] }}">{{ c[1] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Year</label>
+      <input type="number" id="year" class="form-control" value="2024" min="2020" max="2030">
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="status" class="form-control">
+        <option>Selected</option>
+        <option>Rejected</option>
+        <option>On Hold</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn-primary btn-sm" style="width:auto;padding:11px 24px" onclick="submitPlacement()">Save Record</button>
+    <a href="{{ url_for('placements') }}" class="btn-outline">Cancel</a>
+  </div>
+</div>
+
+<script>
+function submitPlacement() {
+  const fields = ['student_id','company_id','year','status'];
+  const form = document.createElement('form');
+  form.method='POST'; form.action='/add_placement';
+  fields.forEach(f => {
+    const inp = document.createElement('input');
+    inp.type='hidden'; inp.name=f; inp.value=document.getElementById(f).value;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form); form.submit();
+}
+</script>
+{% endblock %}
