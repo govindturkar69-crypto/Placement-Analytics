@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+import os
 from flask_mysqldb import MySQL
 import json
 from collections import Counter
@@ -11,7 +12,7 @@ app.secret_key = 'placement_secret_key_2024'
 app.config['MYSQL_HOST'] = 'cela.proxy.rlwy.net'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'lRpebRiRevyVIuZgAOMYLsbiJoevRPRa' 
-app.config['MYSQL_PORT'] = 17708  
+app.config['MYSQL_PORT'] = int(os.environ.get('MYSQL_PORT', 17708))
 app.config['MYSQL_DB'] = 'railway'
 
 mysql = MySQL(app)
