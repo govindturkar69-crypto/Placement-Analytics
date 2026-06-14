@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mysqldb import MySQL
-import pandas as pd
 import json
 from collections import Counter
 from functools import wraps
