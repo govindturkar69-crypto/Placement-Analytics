@@ -5,6 +5,7 @@ from collections import Counter
 from functools import wraps
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = 'placement_secret_key_2024'
 
 app.config['MYSQL_HOST'] = 'cela.proxy.rlwy.net'
