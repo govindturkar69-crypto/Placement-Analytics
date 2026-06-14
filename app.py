@@ -8,10 +8,11 @@ from functools import wraps
 app = Flask(__name__)
 app.secret_key = 'placement_secret_key_2024'
 
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = 'cela.proxy.rlwy.net'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Govind@123'
-app.config['MYSQL_DB'] = 'placement_db'
+app.config['MYSQL_PASSWORD'] = 'lRpebRiRevyVIuZgAOMYLsbiJoevRPRa' 
+app.config['MYSQL_PORT'] = 17708  
+app.config['MYSQL_DB'] = 'railway'
 
 mysql = MySQL(app)
 
