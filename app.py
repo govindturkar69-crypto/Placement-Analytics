@@ -47,6 +47,7 @@ def login():
             session['logged_in'] = True
             session['user_id'] = user[0]
             session['user_name'] = user[1]
+            session['role'] = user[7]
             return redirect(url_for('dashboard'))
         flash('Invalid email or password', 'danger')
     return render_template('login.html')
