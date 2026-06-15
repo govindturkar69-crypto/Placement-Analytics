@@ -88,7 +88,7 @@ def dashboard():
         FROM placements p
         JOIN students s ON p.student_id = s.student_id
         JOIN companies c ON p.company_id = c.company_id
-        ORDER BY p.created_at DESC LIMIT 5
+        ORDER BY p.placement_id DESC LIMIT 5
     """)
     recent = cur.fetchall()
     cur.close()
