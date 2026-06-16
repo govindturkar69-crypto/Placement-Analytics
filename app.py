@@ -292,7 +292,53 @@ def api_stats():
         'placement_rate': round((placed / students) * 100, 1) if students else 0,
         'avg_package': round(avg_pkg, 2)
     })
+@app.route('/predict', methods=['GET', 'POST'])
+@login_required
+def predict():
+    result = None
+    if request.method == 'POST':
+        cgpa = float(request.form['cgpa'])
+        skills = request.form['skills']
+        skill_count = len([s.strip() for s in skills.split(',')])
+        
+        if cgpa >= 9.0 and skill_count >= 5:
+            chance = 95
+        elif cgpa >= 8.5 and skill_count >= 4:
+            chance = 85
+        elif cgpa >= 8.0 and skill_count >= 3:
+            chance = 75
+        elif cgpa >= 7.5 and skill_count >= 2:
+            chance = 65
+        elif cgpa >= 7.0 and skill_count >= 1:
+            chance = 50
+        else:
+            chance = 30
 
+        if chance >= 80:
+            level = 'High'
+            color = 'green'
+            emoji = '🔥'
+        elif chance >= 60:
+            level = 'Medium'
+            color = 'orange'
+            emoji = '⚡'
+        else:
+            level = 'Low'
+            color = 'red'
+            emoji = '📚'
+
+        result = {
+            'chance': chance,
+            'level': level,
+            'color': color,
+            'emoji': emoji,
+            'cgpa': cgpa,
+            'skills': skill_count
+        }
+
+    return render_template('predict.html', 
+        result=result, 
+        user_name=session['user_name'])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
