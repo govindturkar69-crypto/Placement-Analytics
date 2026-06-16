@@ -68,10 +68,12 @@
 </div>
 
 <!-- Quick Links -->
+{% if session.role == 'admin' %}
 <div style="display:flex;gap:12px;flex-wrap:wrap;">
   <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
   <a href="{{ url_for('add_company') }}" class="btn-add" style="background:linear-gradient(135deg,#10b981,#059669)">➕ Add Company</a>
   <a href="{{ url_for('add_placement') }}" class="btn-add" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">✅ Record Placement</a>
   <a href="{{ url_for('analytics') }}" class="btn-add" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📈 View Analytics</a>
 </div>
+{% endif %}
 {% endblock %}
