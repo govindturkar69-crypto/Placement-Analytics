@@ -10,7 +10,7 @@
 <div class="card">
   <div class="action-bar">
     <div class="card-title" style="margin-bottom:0">All Companies ({{ companies|length }})</div>
-    <a href="{{ url_for('add_company') }}" class="btn-add">➕ Add Company</a>
+    {% if session.role == 'admin' %}<a href="{{ url_for('add_company') }}" class="btn-add">➕ Add Company</a>{% endif %}
   </div>
   <div class="table-wrapper">
     <table>
