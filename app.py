@@ -343,9 +343,5 @@ def predict():
         result=result, 
         user_name=session['user_name'])
 
-@app.route('/hash-tool/<plain>')
-def hash_tool(plain):
-    return generate_password_hash(plain)
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
