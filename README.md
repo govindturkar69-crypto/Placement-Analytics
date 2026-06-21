@@ -1,70 +1,97 @@
+<div align="center">
+
 # 🎓 Smart Placement Analytics System
 
-A full-stack web application for managing and analyzing college placement data with role-based access control and ML-based placement prediction.
+### A full-stack placement management platform with role-based dashboards and ML-powered predictions
 
-🌐 **Live Demo:** [https://placement-analytics.onrender.com](https://placement-analytics.onrender.com)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_App-2563eb?style=for-the-badge)](https://placement-analytics.onrender.com)
+[![GitHub](https://img.shields.io/badge/📂_GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/govindturkar69-crypto/Placement-Analytics)
 
-📂 **GitHub:** [github.com/govindturkar69-crypto/Placement-Analytics](https://github.com/govindturkar69-crypto/Placement-Analytics)
+![Python](https://img.shields.io/badge/Python-3.14-3776AB?style=flat-square&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-2.3.3-000000?style=flat-square&logo=flask&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-Railway-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat-square&logo=render&logoColor=white)
+![Chart.js](https://img.shields.io/badge/Chart.js-Analytics-FF6384?style=flat-square&logo=chart.js&logoColor=white)
+
+</div>
 
 ---
 
-## 🚀 Features
+## 📸 Preview
 
-### 👑 Admin Panel (Dark Red Theme)
-- Secure login with admin credentials
-- Add, view and manage students
-- Add and manage companies
-- Record placement results
-- View interactive analytics dashboard with 5 charts
-- ML-based placement prediction
+<div align="center">
 
-### 🎓 Student Portal (Dark Blue Theme)
-- Secure login with student credentials
-- View companies visiting for placements
-- Check personal placement status
-- ML-based placement chance prediction
+| Admin Dashboard | Student Portal |
+|:---:|:---:|
+| ![Admin Dashboard](https://via.placeholder.com/450x280/7f1d1d/ffffff?text=Admin+Dashboard+Screenshot) | ![Student Dashboard](https://via.placeholder.com/450x280/1e293b/ffffff?text=Student+Portal+Screenshot) |
 
-### 📊 Analytics Dashboard
-- Company-wise hiring count (Bar Chart)
-- Year-wise placement trend (Line Chart)
-- Branch-wise placement % (Doughnut Chart)
-- Package distribution (Bar Chart)
-- Most in-demand skills (Horizontal Bar Chart)
+| Analytics Charts | ML Predictor |
+|:---:|:---:|
+| ![Analytics](https://via.placeholder.com/450x280/2563eb/ffffff?text=Analytics+Charts+Screenshot) | ![ML Predictor](https://via.placeholder.com/450x280/10b981/ffffff?text=ML+Predictor+Screenshot) |
+
+*( Replace these placeholder images — see [📷 Updating Screenshots](#-updating-screenshots) below )*
+
+</div>
+
+---
+
+## ✨ Features
+
+### 👑 Admin Panel
+- 🔐 Secure authentication with hashed passwords
+- 👨‍🎓 Add & manage student records
+- 🏢 Add & manage company records
+- ✅ Record placement results
+- 📊 Full analytics dashboard access
+- 🤖 ML placement predictor
+
+### 🎓 Student Portal
+- 🔐 Personal secure login
+- 🏢 View companies visiting campus
+- ✅ Track personal placement status
+- 🤖 Check your own placement chances
+
+### 📈 Analytics Dashboard
+| Chart | Insight |
+|---|---|
+| 📊 Bar Chart | Company-wise hiring count |
+| 📈 Line Chart | Year-wise placement trend |
+| 🍩 Doughnut Chart | Branch-wise placement % |
+| 📊 Bar Chart | Package distribution |
+| 📊 Horizontal Bar | Most in-demand skills |
 
 ### 🤖 ML Placement Predictor
-- Enter CGPA + Skills
-- Get instant placement chance percentage
-- Personalized tips to improve chances
+Enter your **CGPA** + **Skills** → get an instant placement chance percentage with personalized improvement tips.
 
 ---
 
 ## 🛠️ Tech Stack
 
+<div align="center">
+
 | Layer | Technology |
-|-------|-----------|
-| Backend | Python Flask |
-| Database | MySQL (Railway) |
-| Frontend | HTML, CSS, Chart.js |
-| Deployment | Render |
-| Database Host | Railway.app |
+|:---|:---|
+| **Backend** | Python · Flask |
+| **Database** | MySQL (hosted on Railway) |
+| **Frontend** | HTML5 · CSS3 · Chart.js |
+| **Auth** | Werkzeug password hashing |
+| **Deployment** | Render |
+| **Version Control** | Git · GitHub |
+
+</div>
 
 ---
 
-## 🔐 Demo Login Credentials
+## 🔐 Demo Credentials
 
-### Admin Login:
-```
-URL:      https://placement-analytics.onrender.com
-Email:    admin@placement.com
-Password: admin123
-```
+> Try the live app yourself!
 
-### Student Login:
-```
-URL:      https://placement-analytics.onrender.com
-Email:    govind@example.com
-Password: admin123
-```
+| Role | Email | Password |
+|---|---|---|
+| 👑 **Admin** | `admin@placement.com` | `admin123` |
+| 🎓 **Student** | `govind@example.com` | `admin123` |
+
+🔗 **[Launch the App →](https://placement-analytics.onrender.com)**
 
 ---
 
@@ -72,103 +99,118 @@ Password: admin123
 
 ```
 placement-analytics/
-├── app.py                    # Flask backend + all routes
-├── database.sql              # DB schema + sample data
+├── app.py                    # Flask backend — all routes & logic
+├── database.sql              # Schema + sample seed data
 ├── requirements.txt          # Python dependencies
 ├── README.md
 ├── templates/
-│   ├── base.html             # Sidebar layout (Admin/Student theme)
-│   ├── login.html            # Login page
-│   ├── dashboard.html        # Main dashboard
-│   ├── students.html         # Students list
-│   ├── add_student.html      # Add student form
-│   ├── companies.html        # Companies list
-│   ├── add_company.html      # Add company form
-│   ├── placements.html       # Placements list
-│   ├── add_placement.html    # Record placement form
-│   ├── analytics.html        # Charts & insights
-│   └── predict.html          # ML Predictor page
+│   ├── base.html             # Shared layout (Admin/Student themes)
+│   ├── login.html
+│   ├── dashboard.html
+│   ├── students.html
+│   ├── add_student.html
+│   ├── companies.html
+│   ├── add_company.html
+│   ├── placements.html
+│   ├── add_placement.html
+│   ├── analytics.html        # Chart.js dashboard
+│   └── predict.html          # ML predictor UI
 └── static/
     └── css/
-        └── style.css         # Custom styles
+        └── style.css
 ```
 
 ---
 
-## 🔗 API Endpoints
+## 🔗 API Routes
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/login` | GET/POST | Authentication |
-| `/dashboard` | GET | Overview stats |
-| `/students` | GET | List all students |
-| `/add_student` | GET/POST | Add new student |
-| `/companies` | GET | List all companies |
-| `/add_company` | GET/POST | Add new company |
-| `/placements` | GET | All placements |
-| `/add_placement` | GET/POST | Record placement |
-| `/analytics` | GET | Charts & insights |
-| `/predict` | GET/POST | ML prediction |
-| `/api/stats` | GET | JSON stats |
-| `/logout` | GET | Logout |
+| Route | Method | Access | Description |
+|---|---|---|---|
+| `/login` | GET/POST | Public | Authentication |
+| `/dashboard` | GET | Logged in | Overview stats |
+| `/students` | GET | Admin | List students |
+| `/add_student` | GET/POST | Admin | Add a student |
+| `/companies` | GET | All | List companies |
+| `/add_company` | GET/POST | Admin | Add a company |
+| `/placements` | GET | All | Placement records |
+| `/add_placement` | GET/POST | Admin | Record a placement |
+| `/analytics` | GET | Admin | Visual analytics |
+| `/predict` | GET/POST | All | ML chance predictor |
+| `/api/stats` | GET | Logged in | JSON summary stats |
+| `/logout` | GET | All | End session |
 
 ---
 
 ## ⚙️ Local Setup
 
-### Step 1 — Clone repo
 ```bash
+# 1. Clone the repository
 git clone https://github.com/govindturkar69-crypto/Placement-Analytics.git
 cd Placement-Analytics
-```
 
-### Step 2 — Install dependencies
-```bash
+# 2. Install dependencies
 pip install -r requirements.txt
-```
 
-### Step 3 — Setup MySQL
-```bash
+# 3. Set up the database
 mysql -u root -p < database.sql
-```
 
-### Step 4 — Update app.py
-```python
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_PASSWORD'] = 'your_password'
-```
+# 4. Configure environment variables
+# Create a .env file or set these in your shell:
+#   MYSQL_HOST=localhost
+#   MYSQL_USER=root
+#   MYSQL_PASSWORD=your_password
+#   MYSQL_DB=placement_db
+#   MYSQL_PORT=3306
 
-### Step 5 — Run
-```bash
+# 5. Run the app
 python app.py
 ```
-Visit: http://localhost:5000
+
+Visit **http://localhost:5000** 🎉
 
 ---
 
-## 🎯 Interview Answer
+## 🔒 Security Notes
 
-> "I developed a full-stack Smart Placement Analytics System using Python Flask and MySQL. The system features role-based authentication with separate Admin and Student portals. Admins can manage students, companies, and placement records, while students can view their placement status. I implemented an interactive analytics dashboard using Chart.js with 5 different chart types, and a rule-based ML placement predictor that calculates placement chances based on CGPA and skills. The project is deployed live on Render with Railway MySQL as the cloud database."
-
----
-
-## 📦 Requirements
-
-```
-flask==2.3.3
-flask-mysqldb==1.0.1
-PyMySQL==1.1.0
-cryptography==41.0.7
-Werkzeug==2.3.7
-```
+- Passwords are hashed using **Werkzeug's `generate_password_hash`** — never stored in plain text
+- Database credentials are loaded from **environment variables**, never hardcoded in source
+- Session-based authentication with role checks (`admin` / `student`) on protected routes
 
 ---
 
-## 👨‍💻 Developer
+## 📷 Updating Screenshots
+
+To replace the placeholder images above with real screenshots:
+
+1. Take a screenshot of each page (Admin dashboard, Student portal, Analytics, Predictor)
+2. Save them into a new `screenshots/` folder in the repo, e.g. `screenshots/admin-dashboard.png`
+3. Replace each placeholder line in this README:
+   ```markdown
+   ![Admin Dashboard](https://via.placeholder.com/450x280/...)
+   ```
+   with:
+   ```markdown
+   ![Admin Dashboard](screenshots/admin-dashboard.png)
+   ```
+4. Commit and push — GitHub will render them automatically
+
+---
+
+## 🎯 Interview Summary
+
+> *"I built a full-stack Smart Placement Analytics System using Python Flask and MySQL, featuring role-based authentication with distinct Admin and Student dashboards. Admins manage students, companies, and placement records; students track their own status. I implemented a 5-chart analytics dashboard with Chart.js and a rule-based ML predictor that estimates placement chances from CGPA and skills. Passwords are hashed, credentials are environment-based, and the app is deployed live on Render with a Railway-hosted MySQL database."*
+
+---
+
+## 👨‍💻 Author
 
 **Govind Turkar**
-- GitHub: [@govindturkar69-crypto](https://github.com/govindturkar69-crypto)
+[![GitHub](https://img.shields.io/badge/GitHub-govindturkar69--crypto-181717?style=flat-square&logo=github)](https://github.com/govindturkar69-crypto)
 
 ---
 
-⭐ **Star this repo if you found it helpful!**
+<div align="center">
+
+⭐ **If this project helped you, consider giving it a star!** ⭐
+
+</div>
