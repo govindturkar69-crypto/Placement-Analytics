@@ -6,10 +6,12 @@ from flask_mysqldb import MySQL
 import json
 from collections import Counter
 from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-app.secret_key = 'placement_secret_key_2024'
+app.config['PERMANENT_SESSION_LIFETIME'] = 1800
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
 
 app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST')
 app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER')
@@ -40,10 +42,11 @@ def login():
         email = request.form['email']
         password = request.form['password']
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM students WHERE email=%s AND password=%s", (email, password))
+        cur.execute("SELECT * FROM students WHERE email=%s", (email,))
         user = cur.fetchone()
         cur.close()
-        if user:
+        if user and check_password_hash(user[6], password):
+            session.permanent = True
             session['logged_in'] = True
             session['user_id'] = user[0]
             session['user_name'] = user[1]
@@ -123,7 +126,7 @@ def add_student():
         branch = request.form['branch']
         cgpa = request.form['cgpa']
         skills = request.form['skills']
-        password = request.form['password']
+        password = generate_password_hash(request.form['password'])
         cur = mysql.connection.cursor()
         cur.execute(
             "INSERT INTO students(name,email,branch,cgpa,skills,password) VALUES(%s,%s,%s,%s,%s,%s)",
@@ -339,6 +342,10 @@ def predict():
     return render_template('predict.html', 
         result=result, 
         user_name=session['user_name'])
+
+@app.route('/hash-tool/<plain>')
+def hash_tool(plain):
+    return generate_password_hash(plain)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
