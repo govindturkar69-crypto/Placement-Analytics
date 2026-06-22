@@ -26,6 +26,15 @@
           <td><span class="badge badge-success">💰 {{ p[3] }} LPA</span></td>
           <td>{{ p[4] }}</td>
           <td><span class="badge badge-success">{{ p[5] }}</span></td>
+          {% if session.role == 'admin' %}
+          <td>
+            <a href="{{ url_for('delete_placement', placement_id=p[0]) }}"
+               onclick="return confirm('Are you sure you want to delete this placement?')"
+               style="background:#ef4444;color:white;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:12px">
+              🗑️ Delete
+            </a>
+          </td>
+          {% endif %}
         </tr>
         {% else %}
         <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No placement records yet.</td></tr>

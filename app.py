@@ -343,5 +343,44 @@ def predict():
         result=result, 
         user_name=session['user_name'])
 
+@app.route('/delete_student/<int:student_id>')
+@login_required
+def delete_student(student_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM students WHERE student_id=%s", (student_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash('Student deleted successfully!', 'success')
+    return redirect(url_for('students'))
+
+@app.route('/delete_company/<int:company_id>')
+@login_required
+def delete_company(company_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM companies WHERE company_id=%s", (company_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash('Company deleted successfully!', 'success')
+    return redirect(url_for('companies'))
+
+@app.route('/delete_placement/<int:placement_id>')
+@login_required
+def delete_placement(placement_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM placements WHERE placement_id=%s", (placement_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash('Placement deleted successfully!', 'success')
+    return redirect(url_for('placements'))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

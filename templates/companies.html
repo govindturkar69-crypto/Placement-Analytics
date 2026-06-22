@@ -29,6 +29,15 @@
           </td>
           <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c[3] }}</td>
           <td>{{ c[4] }}</td>
+          {% if session.role == 'admin' %}
+          <td>
+            <a href="{{ url_for('delete_company', company_id=c[0]) }}"
+               onclick="return confirm('Are you sure you want to delete this company?')"
+               style="background:#ef4444;color:white;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:12px">
+              🗑️ Delete
+            </a>
+          </td>
+          {% endif %}
         </tr>
         {% else %}
         <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:32px">No companies found.</td></tr>
