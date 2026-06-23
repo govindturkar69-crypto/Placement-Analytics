@@ -382,5 +382,63 @@ def delete_placement(placement_id):
     flash('Placement deleted successfully!', 'success')
     return redirect(url_for('placements'))
 
+@app.route('/edit_student/<int:student_id>', methods=['GET', 'POST'])
+@login_required
+def edit_student(student_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        branch = request.form['branch']
+        cgpa = request.form['cgpa']
+        skills = request.form['skills']
+        cur.execute("""
+            UPDATE students 
+            SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s 
+            WHERE student_id=%s
+        """, (name, email, branch, cgpa, skills, student_id))
+        mysql.connection.commit()
+        cur.close()
+        flash('Student updated successfully!', 'success')
+        return redirect(url_for('students'))
+    cur.execute("SELECT * FROM students WHERE student_id=%s", (student_id,))
+    student = cur.fetchone()
+    cur.close()
+    return render_template('edit_student.html',
+        student=student,
+        user_name=session['user_name'])
+
+
+@app.route('/edit_company/<int:company_id>', methods=['GET', 'POST'])
+@login_required
+def edit_company(company_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        name = request.form['company_name']
+        package = request.form['package']
+        skills = request.form['required_skills']
+        visit_date = request.form['visit_date']
+        cur.execute("""
+            UPDATE companies 
+            SET company_name=%s, package=%s, required_skills=%s, visit_date=%s 
+            WHERE company_id=%s
+        """, (name, package, skills, visit_date, company_id))
+        mysql.connection.commit()
+        cur.close()
+        flash('Company updated successfully!', 'success')
+        return redirect(url_for('companies'))
+    cur.execute("SELECT * FROM companies WHERE company_id=%s", (company_id,))
+    company = cur.fetchone()
+    cur.close()
+    return render_template('edit_company.html',
+        company=company,
+        user_name=session['user_name'])
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

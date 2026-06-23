@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Edit Student{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>✏️ Edit Student</h1>
+  <p>Update student information</p>
+</div>
+
+<div class="card" style="max-width:700px">
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="name" class="form-control" value="{{ student[1] }}">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" class="form-control" value="{{ student[2] }}">
+    </div>
+    <div class="form-group">
+      <label>Branch</label>
+      <select id="branch" class="form-control">
+        {% for b in ['CSE','IT','ECE','EEE','Mechanical','Civil'] %}
+        <option {% if student[3]==b %}selected{% endif %}>{{ b }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>CGPA</label>
+      <input type="number" id="cgpa" class="form-control" 
+             step="0.1" min="0" max="10" value="{{ student[4] }}">
+    </div>
+    <div class="form-group" style="grid-column:1/-1">
+      <label>Skills</label>
+      <input type="text" id="skills" class="form-control" value="{{ student[5] }}">
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn-primary" style="width:auto;padding:11px 24px" 
+            onclick="submitEdit()">
+      💾 Save Changes
+    </button>
+    <a href="{{ url_for('students') }}" class="btn-outline">Cancel</a>
+  </div>
+</div>
+
+<script>
+function submitEdit() {
+  const fields = ['name','email','branch','cgpa','skills'];
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/edit_student/{{ student[0] }}';
+  fields.forEach(f => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = f;
+    inp.value = document.getElementById(f).value;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+{% endblock %}
