@@ -69,6 +69,15 @@
 
 <!-- Quick Links -->
 {% if session.role == 'admin' %}
+<div style="margin-bottom:20px">
+  <a href="{{ url_for('download_report') }}" 
+     class="btn-add" 
+     style="background:linear-gradient(135deg,#dc2626,#991b1b)">
+    📄 Download PDF Report
+  </a>
+</div>
+{% endif %}
+{% if session.role == 'admin' %}
 <div style="display:flex;gap:12px;flex-wrap:wrap;">
   <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
   <a href="{{ url_for('add_company') }}" class="btn-add" style="background:linear-gradient(135deg,#10b981,#059669)">➕ Add Company</a>

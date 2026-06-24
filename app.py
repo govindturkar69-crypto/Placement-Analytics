@@ -6,6 +6,8 @@ from flask_mysqldb import MySQL
 import json
 from collections import Counter
 from functools import wraps
+from flask_mail import Mail, Message
+import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
@@ -20,6 +22,15 @@ app.config['MYSQL_PORT'] = int(os.environ.get('MYSQL_PORT', 3306))
 app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB')
 
 mysql = MySQL(app)
+
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+mail = Mail(app)
+
+reset_tokens = {}
 
 def login_required(f):
     @wraps(f)
@@ -439,6 +450,175 @@ def edit_company(company_id):
     return render_template('edit_company.html',
         company=company,
         user_name=session['user_name'])
+
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from io import BytesIO
+from flask import make_response
+
+@app.route('/download_report')
+@login_required
+def download_report():
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT s.name, c.company_name, c.package, p.year, p.status, s.branch
+        FROM placements p
+        JOIN students s ON p.student_id = s.student_id
+        JOIN companies c ON p.company_id = c.company_id
+        ORDER BY p.year DESC
+    """)
+    placements = cur.fetchall()
+
+    cur.execute("SELECT COUNT(*) FROM students")
+    total_students = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM placements")
+    total_placed = cur.fetchone()[0]
+
+    cur.execute("SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id")
+    avg_pkg = cur.fetchone()[0] or 0
+
+    cur.execute("SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id")
+    max_pkg = cur.fetchone()[0] or 0
+    cur.close()
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    # Title
+    title_style = styles['Title']
+    elements.append(Paragraph('Smart Placement Analytics Report', title_style))
+    elements.append(Spacer(1, 20))
+
+    # Summary Stats
+    elements.append(Paragraph('Summary Statistics', styles['Heading2']))
+    elements.append(Spacer(1, 10))
+
+    summary_data = [
+        ['Metric', 'Value'],
+        ['Total Students', str(total_students)],
+        ['Students Placed', str(total_placed)],
+        ['Average Package', f'{round(avg_pkg, 2)} LPA'],
+        ['Highest Package', f'{round(max_pkg, 2)} LPA'],
+        ['Placement Rate', f'{round((total_placed/total_students)*100, 1) if total_students else 0}%'],
+    ]
+
+    summary_table = Table(summary_data, colWidths=[250, 250])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563eb')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0f4ff')]),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 11),
+        ('PADDING', (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 30))
+
+    # Placement Records
+    elements.append(Paragraph('Placement Records', styles['Heading2']))
+    elements.append(Spacer(1, 10))
+
+    if placements:
+        placement_data = [['Student Name', 'Company', 'Package (LPA)', 'Year', 'Branch', 'Status']]
+        for p in placements:
+            placement_data.append([
+                str(p[0]), str(p[1]), str(p[2]),
+                str(p[3]), str(p[5]), str(p[4])
+            ])
+
+        placement_table = Table(placement_data, colWidths=[110, 100, 80, 50, 70, 80])
+        placement_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8fafc')]),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('PADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(placement_table)
+    else:
+        elements.append(Paragraph('No placement records found.', styles['Normal']))
+
+    doc.build(elements)
+    buffer.seek(0)
+
+    response = make_response(buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'attachment; filename=placement_report.pdf'
+    return response
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM students WHERE email=%s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        if user:
+            token = secrets.token_urlsafe(32)
+            reset_tokens[token] = email
+            reset_link = url_for('reset_password', token=token, _external=True)
+            try:
+                msg = Message(
+                    'Password Reset - Placement Analytics',
+                    sender=os.environ.get('MAIL_USERNAME'),
+                    recipients=[email]
+                )
+                msg.body = f'''Hello {user[1]},
+
+Click the link below to reset your password:
+{reset_link}
+
+This link will work only once.
+
+If you did not request this, ignore this email.
+
+Regards,
+Placement Analytics Team'''
+                mail.send(msg)
+                flash('Password reset link sent to your email!', 'success')
+            except:
+                flash('Error sending email. Please try again.', 'danger')
+        else:
+            flash('Email not found!', 'danger')
+    return render_template('forgot_password.html')
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if token not in reset_tokens:
+        flash('Invalid or expired link!', 'danger')
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        new_password = request.form['password']
+        email = reset_tokens[token]
+        hashed = generate_password_hash(new_password)
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE students SET password=%s WHERE email=%s", (hashed, email))
+        mysql.connection.commit()
+        cur.close()
+        del reset_tokens[token]
+        flash('Password reset successful! Please login.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', token=token)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

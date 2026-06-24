@@ -48,6 +48,12 @@ body{font-family:'Inter','Segoe UI',sans-serif}
         <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
       </div>
       <button class="btn-primary" onclick="submitLogin()">Sign In →</button>
+      <p style="text-align:center;margin-top:12px;font-size:13px">
+        <a href="{{ url_for('forgot_password') }}" 
+           style="color:#2563eb;text-decoration:none;font-weight:600">
+          🔐 Forgot Password?
+        </a>
+      </p>
     </div>
 
     <p style="text-align:center;margin-top:20px;font-size:13px;color:#94a3b8;">
