@@ -9,8 +9,24 @@
 
 <div class="card">
   <div class="action-bar">
-    <div class="card-title" style="margin-bottom:0">All Companies ({{ companies|length }})</div>
-    {% if session.role == 'admin' %}<a href="{{ url_for('add_company') }}" class="btn-add">➕ Add Company</a>{% endif %}
+    <div class="card-title" style="margin-bottom:0">All Companies (<span id="count">{{ companies|length }}</span>)</div>
+    {% if session.role == 'admin' %}
+    <a href="{{ url_for('add_company') }}" class="btn-add">➕ Add Company</a>
+    {% endif %}
+  </div>
+  <div style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap">
+    <input type="text" id="searchInput"
+           placeholder="🔍 Search by company name, skills..."
+           oninput="filterTable()"
+           style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;width:320px">
+    <select id="packageFilter" onchange="filterTable()"
+            style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none">
+      <option value="">All Packages</option>
+      <option value="30">30+ LPA</option>
+      <option value="20">20+ LPA</option>
+      <option value="10">10+ LPA</option>
+      <option value="5">5+ LPA</option>
+    </select>
   </div>
   <div class="table-wrapper">
     <table>
@@ -50,4 +66,25 @@
     </table>
   </div>
 </div>
+<script>
+function filterTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const pkg = document.getElementById('packageFilter').value;
+  const rows = document.querySelectorAll('tbody tr');
+  let count = 0;
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+    const rowPkg = row.cells[2] ? parseFloat(row.cells[2].innerText) : 0;
+    const matchSearch = text.includes(search);
+    const matchPkg = pkg === '' || rowPkg >= parseFloat(pkg);
+    if (matchSearch && matchPkg) {
+      row.style.display = '';
+      count++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  document.getElementById('count').innerText = count;
+}
+</script>
 {% endblock %}

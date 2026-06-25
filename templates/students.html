@@ -9,8 +9,34 @@
 
 <div class="card">
   <div class="action-bar">
-    <div class="card-title" style="margin-bottom:0">All Students ({{ students|length }})</div>
+    <div class="card-title" style="margin-bottom:0">All Students (<span id="count">{{ students|length }}</span>)</div>
+    {% if session.role == 'admin' %}
     <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
+    {% endif %}
+  </div>
+  <div style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap">
+    <input type="text" id="searchInput" 
+           placeholder="🔍 Search by name, email, branch, skills..."
+           oninput="filterTable()"
+           style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;width:320px">
+    <select id="branchFilter" onchange="filterTable()"
+            style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none">
+      <option value="">All Branches</option>
+      <option>CSE</option>
+      <option>IT</option>
+      <option>ECE</option>
+      <option>EEE</option>
+      <option>Mechanical</option>
+      <option>Civil</option>
+    </select>
+    <select id="cgpaFilter" onchange="filterTable()"
+            style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none">
+      <option value="">All CGPA</option>
+      <option value="9">9+ CGPA</option>
+      <option value="8">8+ CGPA</option>
+      <option value="7">7+ CGPA</option>
+      <option value="6">6+ CGPA</option>
+    </select>
   </div>
   <div class="table-wrapper">
     <table>
@@ -54,4 +80,28 @@
     </table>
   </div>
 </div>
+<script>
+function filterTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const branch = document.getElementById('branchFilter').value.toLowerCase();
+  const cgpa = document.getElementById('cgpaFilter').value;
+  const rows = document.querySelectorAll('tbody tr');
+  let count = 0;
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+    const rowBranch = row.cells[3] ? row.cells[3].innerText.toLowerCase() : '';
+    const rowCgpa = row.cells[4] ? parseFloat(row.cells[4].innerText) : 0;
+    const matchSearch = text.includes(search);
+    const matchBranch = branch === '' || rowBranch.includes(branch);
+    const matchCgpa = cgpa === '' || rowCgpa >= parseFloat(cgpa);
+    if (matchSearch && matchBranch && matchCgpa) {
+      row.style.display = '';
+      count++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  document.getElementById('count').innerText = count;
+}
+</script>
 {% endblock %}
