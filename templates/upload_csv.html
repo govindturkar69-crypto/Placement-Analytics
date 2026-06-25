@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Upload CSV{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>📁 Bulk Upload Students</h1>
+  <p>Upload a CSV file to add multiple students at once</p>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
+
+  <!-- Upload Form -->
+  <div class="card">
+    <div class="card-title">📤 Upload CSV File</div>
+    
+    <!-- Drag & Drop Area -->
+    <div id="dropZone"
+         style="border:2px dashed #e2e8f0;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:20px"
+         onclick="document.getElementById('csvFile').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#2563eb';this.style.background='#eff6ff'"
+         ondragleave="this.style.borderColor='#e2e8f0';this.style.background='white'"
+         ondrop="handleDrop(event)">
+      <div style="font-size:48px;margin-bottom:12px">📄</div>
+      <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:4px">
+        Click or drag CSV file here
+      </div>
+      <div style="font-size:13px;color:#94a3b8">Only .csv files supported</div>
+      <div id="fileName" style="margin-top:12px;font-size:13px;color:#2563eb;font-weight:600"></div>
+    </div>
+
+    <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="showFileName(this)">
+
+    <button class="btn-primary" onclick="submitUpload()">
+      📤 Upload & Add Students
+    </button>
+  </div>
+
+  <!-- Instructions -->
+  <div class="card">
+    <div class="card-title">📋 CSV Format Required</div>
+    
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px">
+      Your CSV file must have these exact column names:
+    </p>
+
+    <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;overflow-x:auto">
+      <table style="width:100%;font-size:12px">
+        <thead>
+          <tr style="background:#1e293b;color:white">
+            <th style="padding:8px;text-align:left">Column</th>
+            <th style="padding:8px;text-align:left">Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background:white">
+            <td style="padding:8px"><code>name</code></td>
+            <td style="padding:8px">Rahul Sharma</td>
+          </tr>
+          <tr style="background:#f8fafc">
+            <td style="padding:8px"><code>email</code></td>
+            <td style="padding:8px">rahul@example.com</td>
+          </tr>
+          <tr style="background:white">
+            <td style="padding:8px"><code>branch</code></td>
+            <td style="padding:8px">CSE</td>
+          </tr>
+          <tr style="background:#f8fafc">
+            <td style="padding:8px"><code>cgpa</code></td>
+            <td style="padding:8px">8.5</td>
+          </tr>
+          <tr style="background:white">
+            <td style="padding:8px"><code>skills</code></td>
+            <td style="padding:8px">Python, Java, SQL</td>
+          </tr>
+          <tr style="background:#f8fafc">
+            <td style="padding:8px"><code>password</code></td>
+            <td style="padding:8px">student123</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Download Sample -->
+    <button onclick="downloadSample()" 
+            class="btn-outline" style="width:100%;justify-content:center">
+      ⬇️ Download Sample CSV
+    </button>
+  </div>
+</div>
+
+<script>
+function showFileName(input) {
+  if (input.files[0]) {
+    document.getElementById('fileName').innerText = '✅ ' + input.files[0].name;
+    document.getElementById('dropZone').style.borderColor = '#10b981';
+    document.getElementById('dropZone').style.background = '#ecfdf5';
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').style.borderColor = '#e2e8f0';
+  document.getElementById('dropZone').style.background = 'white';
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.csv')) {
+    document.getElementById('csvFile').files = e.dataTransfer.files;
+    document.getElementById('fileName').innerText = '✅ ' + file.name;
+    document.getElementById('dropZone').style.borderColor = '#10b981';
+    document.getElementById('dropZone').style.background = '#ecfdf5';
+  } else {
+    alert('Please upload a CSV file only!');
+  }
+}
+
+function submitUpload() {
+  const file = document.getElementById('csvFile').files[0];
+  if (!file) {
+    alert('Please select a CSV file first!');
+    return;
+  }
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/upload_csv';
+  form.enctype = 'multipart/form-data';
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.name = 'csv_file';
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  input.files = dt.files;
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function downloadSample() {
+  const csv = `name,email,branch,cgpa,skills,password
+Rahul Sharma,rahul@example.com,CSE,8.5,"Python, Java, SQL",student123
+Priya Patel,priya@example.com,IT,9.1,"React, Node.js, MySQL",student123
+Amit Kumar,amit@example.com,ECE,7.8,"C++, Python, DSA",student123`;
+  
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sample_students.csv';
+  a.click();
+}
+</script>
+{% endblock %}
