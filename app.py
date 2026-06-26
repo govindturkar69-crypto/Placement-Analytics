@@ -607,49 +607,60 @@ def reset_password(token):
     if token not in reset_tokens:
         flash('Invalid or expired link!', 'danger')
         return redirect(url_for('login'))
+
     if request.method == 'POST':
         new_password = request.form['password']
         email = reset_tokens[token]
         hashed = generate_password_hash(new_password)
+
         cur = mysql.connection.cursor()
-        cur.execute("UPDATE students SET password=%s WHERE email=%s", (hashed, email))
+        cur.execute(
+            "UPDATE students SET password=%s WHERE email=%s",
+            (hashed, email)
+        )
         mysql.connection.commit()
         cur.close()
+
         del reset_tokens[token]
         flash('Password reset successful! Please login.', 'success')
         return redirect(url_for('login'))
+
     return render_template('reset_password.html', token=token)
 
-    @app.route('/upload_csv', methods=['GET', 'POST'])
+
+@app.route('/upload_csv', methods=['GET', 'POST'])
 @login_required
 def upload_csv():
     if session.get('role') != 'admin':
         flash('Access denied!', 'danger')
         return redirect(url_for('dashboard'))
-    
+
     if request.method == 'POST':
         if 'csv_file' not in request.files:
             flash('No file selected!', 'danger')
             return redirect(url_for('upload_csv'))
-        
+
         file = request.files['csv_file']
-        
+
         if file.filename == '':
             flash('No file selected!', 'danger')
             return redirect(url_for('upload_csv'))
-        
+
         if not file.filename.endswith('.csv'):
             flash('Only CSV files allowed!', 'danger')
             return redirect(url_for('upload_csv'))
-        
+
         try:
             import csv
             import io
+
             stream = io.StringIO(file.stream.read().decode('utf-8'))
             reader = csv.DictReader(stream)
+
             required_columns = ['name', 'email', 'branch', 'cgpa', 'skills', 'password']
 
             rows = list(reader)
+
             if not rows:
                 flash('CSV file is empty!', 'danger')
                 return redirect(url_for('upload_csv'))
@@ -666,6 +677,7 @@ def upload_csv():
             for row in rows:
                 try:
                     hashed_password = generate_password_hash(str(row['password']))
+
                     cur.execute("""
                         INSERT INTO students
                         (name, email, branch, cgpa, skills, password, role)
@@ -678,21 +690,25 @@ def upload_csv():
                         str(row['skills']),
                         hashed_password
                     ))
+
                     mysql.connection.commit()
                     success += 1
+
                 except Exception as e:
                     errors += 1
                     continue
-            
+
             cur.close()
+
             flash(f'✅ {success} students added successfully! ❌ {errors} errors skipped.', 'success')
             return redirect(url_for('students'))
-        
+
         except Exception as e:
             flash(f'Error reading CSV: {str(e)}', 'danger')
             return redirect(url_for('upload_csv'))
-    
+
     return render_template('upload_csv.html', user_name=session['user_name'])
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
