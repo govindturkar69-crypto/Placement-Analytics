@@ -620,9 +620,7 @@ def reset_password(token):
         return redirect(url_for('login'))
     return render_template('reset_password.html', token=token)
 
-    import pandas as pd
-
-@app.route('/upload_csv', methods=['GET', 'POST'])
+    @app.route('/upload_csv', methods=['GET', 'POST'])
 @login_required
 def upload_csv():
     if session.get('role') != 'admin':
@@ -645,23 +643,31 @@ def upload_csv():
             return redirect(url_for('upload_csv'))
         
         try:
-            df = pd.read_csv(file)
+            import csv
+            import io
+            stream = io.StringIO(file.stream.read().decode('utf-8'))
+            reader = csv.DictReader(stream)
             required_columns = ['name', 'email', 'branch', 'cgpa', 'skills', 'password']
-            
-            missing = [col for col in required_columns if col not in df.columns]
+
+            rows = list(reader)
+            if not rows:
+                flash('CSV file is empty!', 'danger')
+                return redirect(url_for('upload_csv'))
+
+            missing = [col for col in required_columns if col not in rows[0].keys()]
             if missing:
                 flash(f'Missing columns: {", ".join(missing)}', 'danger')
                 return redirect(url_for('upload_csv'))
-            
+
             cur = mysql.connection.cursor()
             success = 0
             errors = 0
-            
-            for _, row in df.iterrows():
+
+            for row in rows:
                 try:
                     hashed_password = generate_password_hash(str(row['password']))
                     cur.execute("""
-                        INSERT INTO students 
+                        INSERT INTO students
                         (name, email, branch, cgpa, skills, password, role)
                         VALUES (%s, %s, %s, %s, %s, %s, 'student')
                     """, (
