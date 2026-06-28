@@ -9,6 +9,14 @@ from functools import wraps
 from flask_mail import Mail, Message
 import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import make_response
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from io import BytesIO
+import csv
+import io
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -451,13 +459,6 @@ def edit_company(company_id):
         company=company,
         user_name=session['user_name'])
 
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from io import BytesIO
-from flask import make_response
-
 @app.route('/download_report')
 @login_required
 def download_report():
@@ -651,9 +652,6 @@ def upload_csv():
             return redirect(url_for('upload_csv'))
 
         try:
-            import csv
-            import io
-
             stream = io.StringIO(file.stream.read().decode('utf-8'))
             reader = csv.DictReader(stream)
 
