@@ -217,6 +217,34 @@ def add_placement():
         )
         mysql.connection.commit()
         cur.close()
+        cur.execute("SELECT name, email FROM students WHERE student_id=%s", (student_id,))
+        student = cur.fetchone()
+        cur.execute("SELECT company_name, package FROM companies WHERE company_id=%s", (company_id,))
+        company = cur.fetchone()
+        if student and company:
+            try:
+                msg = Message(
+                    '🎉 Congratulations! Placement Confirmed',
+                    sender=os.environ.get('MAIL_USERNAME'),
+                    recipients=[student[1]]
+                )
+                msg.body = f'''Dear {student[0]},
+
+🎉 Congratulations! You have been placed at {company[0]}!
+
+📋 Placement Details:
+   Company: {company[0]}
+   Package: {company[1]} LPA
+   Year: {year}
+   Status: {status}
+
+Keep up the great work!
+
+Best Regards,
+Placement Analytics Team'''
+                mail.send(msg)
+            except Exception:
+                pass
         flash('Placement recorded successfully!', 'success')
         return redirect(url_for('placements'))
     cur.execute("SELECT student_id, name FROM students")
@@ -707,6 +735,124 @@ def upload_csv():
 
     return render_template('upload_csv.html', user_name=session['user_name'])
 
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
+
+@app.route('/export_excel')
+@login_required
+def export_excel():
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+
+    cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT s.name, s.email, s.branch, s.cgpa, s.skills,
+               c.company_name, c.package, p.year, p.status
+        FROM placements p
+        JOIN students s ON p.student_id = s.student_id
+        JOIN companies c ON p.company_id = c.company_id
+        ORDER BY p.year DESC
+    """)
+    placements = cur.fetchall()
+
+    cur.execute("SELECT name, email, branch, cgpa, skills FROM students")
+    all_students = cur.fetchall()
+
+    cur.execute("SELECT company_name, package, required_skills, visit_date FROM companies")
+    all_companies = cur.fetchall()
+    cur.close()
+
+    wb = openpyxl.Workbook()
+
+    ws1 = wb.active
+    ws1.title = "Placements"
+
+    header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+    header_font = Font(color="FFFFFF", bold=True, size=11)
+    center = Alignment(horizontal='center', vertical='center')
+
+    headers1 = ['Student Name', 'Email', 'Branch', 'CGPA', 'Skills',
+                'Company', 'Package (LPA)', 'Year', 'Status']
+    for col, header in enumerate(headers1, 1):
+        cell = ws1.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = center
+
+    for row_idx, row in enumerate(placements, 2):
+        for col_idx, value in enumerate(row, 1):
+            cell = ws1.cell(row=row_idx, column=col_idx, value=value)
+            cell.alignment = center
+            if row_idx % 2 == 0:
+                cell.fill = PatternFill(start_color="EFF6FF", end_color="EFF6FF", fill_type="solid")
+
+    for col in range(1, len(headers1) + 1):
+        ws1.column_dimensions[get_column_letter(col)].width = 18
+
+    # ── Sheet 2: Students ──
+    ws2 = wb.create_sheet("Students")
+    headers2 = ['Name', 'Email', 'Branch', 'CGPA', 'Skills']
+    for col, header in enumerate(headers2, 1):
+        cell = ws2.cell(row=1, column=col, value=header)
+        cell.fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
+        cell.font = Font(color="FFFFFF", bold=True)
+        cell.alignment = center
+
+    for row_idx, row in enumerate(all_students, 2):
+        for col_idx, value in enumerate(row, 1):
+            cell = ws2.cell(row=row_idx, column=col_idx, value=value)
+            cell.alignment = center
+
+    for col in range(1, len(headers2) + 1):
+        ws2.column_dimensions[get_column_letter(col)].width = 20
+
+    # ── Sheet 3: Companies ──
+    ws3 = wb.create_sheet("Companies")
+    headers3 = ['Company Name', 'Package (LPA)', 'Required Skills', 'Visit Date']
+    for col, header in enumerate(headers3, 1):
+        cell = ws3.cell(row=1, column=col, value=header)
+        cell.fill = PatternFill(start_color="10B981", end_color="10B981", fill_type="solid")
+        cell.font = Font(color="FFFFFF", bold=True)
+        cell.alignment = center
+
+    for row_idx, row in enumerate(all_companies, 2):
+        for col_idx, value in enumerate(row, 1):
+            cell = ws3.cell(row=row_idx, column=col_idx, value=str(value) if value else '')
+            cell.alignment = center
+
+    for col in range(1, len(headers3) + 1):
+        ws3.column_dimensions[get_column_letter(col)].width = 22
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    response = make_response(output.getvalue())
+    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    response.headers['Content-Disposition'] = 'attachment; filename=placement_data.xlsx'
+    return response
+
+@app.route('/profile')
+@login_required
+def profile():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM students WHERE student_id=%s", (session['user_id'],))
+    student = cur.fetchone()
+    cur.execute("""
+        SELECT c.company_name, c.package, p.year, p.status
+        FROM placements p
+        JOIN companies c ON p.company_id = c.company_id
+        WHERE p.student_id = %s
+        ORDER BY p.year DESC
+    """, (session['user_id'],))
+    my_placements = cur.fetchall()
+    cur.close()
+    return render_template('profile.html',
+        student=student,
+        my_placements=my_placements,
+        user_name=session['user_name'])
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

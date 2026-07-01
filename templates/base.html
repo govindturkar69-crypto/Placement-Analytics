@@ -82,6 +82,22 @@
     .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px}
     .chart-container{position:relative;height:280px}
     .form-actions{display:flex;gap:12px;margin-top:24px}
+    @media (max-width:768px){
+  .sidebar{width:100%;height:auto;position:relative;flex-direction:row;flex-wrap:wrap}
+  .sidebar-brand{padding:12px 16px;flex:1}
+  .sidebar-nav{display:none;width:100%;order:3}
+  .sidebar-nav.open{display:block}
+  .sidebar-footer{padding:8px 12px}
+  .main-content{margin-left:0;padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .app-layout{flex-direction:column}
+  .hamburger{display:block;background:none;border:none;color:white;font-size:24px;cursor:pointer;padding:12px}
+}
+@media (min-width:769px){
+  .hamburger{display:none}
+}
   </style>
 </head>
 <body>
@@ -89,6 +105,7 @@
 
   <aside class="sidebar {{ 'admin-theme' if session.role == 'admin' else 'student-theme' }}">
     <div class="sidebar-brand">
+      <button class="hamburger" onclick="document.querySelector('.sidebar-nav').classList.toggle('open')">☰</button>
       <div class="brand-icon">{{ '👑' if session.role == 'admin' else '🎓' }}</div>
       <h2>Placement<br>Analytics</h2>
       <span>{{ 'Admin Panel' if session.role == 'admin' else 'Student Portal' }}</span>
@@ -126,6 +143,9 @@
       <a href="{{ url_for('placements') }}" class="nav-link {% if request.endpoint=='placements' %}active{% endif %}">
         <span class="icon">✅</span> My Placements
       </a>
+      <a href="{{ url_for('profile') }}" class="nav-link {% if request.endpoint=='profile' %}active{% endif %}">
+        <span class="icon">👤</span> My Profile
+      </a>
       {% endif %}
       <a href="{{ url_for('predict') }}" class="nav-link {% if request.endpoint=='predict' %}active{% endif %}">
         <span class="icon">🤖</span> ML Predictor
@@ -140,6 +160,10 @@
           <div class="role">{{ session.role }}</div>
         </div>
       </div>
+      <button onclick="toggleDark()"
+        style="width:100%;padding:8px 12px;border-radius:8px;border:none;background:rgba(255,255,255,0.05);color:#94a3b8;cursor:pointer;font-size:13px;text-align:left;margin-bottom:8px">
+        🌙 <span id="darkLabel">Dark Mode</span>
+      </button>
       <a href="{{ url_for('logout') }}" class="logout-link">
         <span>🚪</span> Logout
       </a>
@@ -156,5 +180,35 @@
   </main>
 </div>
 {% block scripts %}{% endblock %}
+<style>
+body.dark-mode{background:#0f172a;color:#e2e8f0}
+body.dark-mode .card{background:#1e293b;border-color:#334155;color:#e2e8f0}
+body.dark-mode .main-content{background:#0f172a}
+body.dark-mode table{color:#e2e8f0}
+body.dark-mode thead th{background:#1e293b;color:#94a3b8}
+body.dark-mode tbody td{border-color:#334155}
+body.dark-mode tbody tr:hover{background:#334155}
+body.dark-mode .form-control{background:#1e293b;border-color:#334155;color:#e2e8f0}
+body.dark-mode .stat-card{background:#1e293b;border-color:#334155}
+body.dark-mode .stat-value{color:#e2e8f0}
+body.dark-mode .page-header h1{color:#e2e8f0}
+body.dark-mode .page-header p{color:#94a3b8}
+body.dark-mode .card-title{color:#e2e8f0}
+</style>
+<script>
+function toggleDark() {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('darkMode', isDark);
+  document.getElementById('darkLabel').innerText = isDark ? 'Light Mode' : 'Dark Mode';
+}
+if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+  document.addEventListener('DOMContentLoaded', () => {
+    const label = document.getElementById('darkLabel');
+    if (label) label.innerText = 'Light Mode';
+  });
+}
+</script>
 </body>
 </html>
