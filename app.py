@@ -216,11 +216,11 @@ def add_placement():
             (student_id, company_id, year, status)
         )
         mysql.connection.commit()
-        cur.close()
         cur.execute("SELECT name, email FROM students WHERE student_id=%s", (student_id,))
         student = cur.fetchone()
         cur.execute("SELECT company_name, package FROM companies WHERE company_id=%s", (company_id,))
         company = cur.fetchone()
+        cur.close()
         if student and company:
             try:
                 msg = Message(
