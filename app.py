@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, make_response
 import os
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -9,7 +9,6 @@ from functools import wraps
 from flask_mail import Mail, Message
 import secrets
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import make_response
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
@@ -17,6 +16,9 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from io import BytesIO
 import csv
 import io
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -39,6 +41,7 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 mail = Mail(app)
 
 reset_tokens = {}
+
 
 def login_required(f):
     @wraps(f)
@@ -80,6 +83,63 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM students WHERE email=%s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        if user:
+            token = secrets.token_urlsafe(32)
+            reset_tokens[token] = email
+            reset_link = url_for('reset_password', token=token, _external=True)
+            try:
+                msg = Message(
+                    'Password Reset - Placement Analytics',
+                    sender=os.environ.get('MAIL_USERNAME'),
+                    recipients=[email]
+                )
+                msg.body = f'''Hello {user[1]},
+
+Click the link below to reset your password:
+{reset_link}
+
+This link will work only once.
+
+If you did not request this, ignore this email.
+
+Regards,
+Placement Analytics Team'''
+                mail.send(msg)
+                flash('Password reset link sent to your email!', 'success')
+            except Exception:
+                flash('Error sending email. Please try again.', 'danger')
+        else:
+            flash('Email not found!', 'danger')
+    return render_template('forgot_password.html')
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if token not in reset_tokens:
+        flash('Invalid or expired link!', 'danger')
+        return redirect(url_for('login'))
+    if request.method == 'POST':
+        new_password = request.form['password']
+        email = reset_tokens[token]
+        hashed = generate_password_hash(new_password)
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE students SET password=%s WHERE email=%s", (hashed, email))
+        mysql.connection.commit()
+        cur.close()
+        del reset_tokens[token]
+        flash('Password reset successful! Please login.', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', token=token)
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -114,6 +174,55 @@ def dashboard():
         ORDER BY p.placement_id DESC LIMIT 5
     """)
     recent = cur.fetchall()
+
+    notifications = []
+    if session.get('role') == 'admin':
+        cur.execute("""
+            SELECT s.name, c.company_name, c.package, p.status
+            FROM placements p
+            JOIN students s ON p.student_id = s.student_id
+            JOIN companies c ON p.company_id = c.company_id
+            ORDER BY p.placement_id DESC LIMIT 3
+        """)
+        recent_placements = cur.fetchall()
+        for p in recent_placements:
+            notifications.append({
+                'icon': '🎉',
+                'message': f'{p[0]} placed at {p[1]} — {p[2]} LPA',
+                'type': 'success'
+            })
+
+        cur.execute("SELECT COUNT(*) FROM students WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")
+        new_students = cur.fetchone()[0]
+        if new_students:
+            notifications.append({
+                'icon': '👨‍🎓',
+                'message': f'{new_students} new student(s) added this week',
+                'type': 'info'
+            })
+
+    if session.get('role') == 'student':
+        cur.execute("""
+            SELECT c.company_name, c.package, p.status
+            FROM placements p
+            JOIN companies c ON p.company_id = c.company_id
+            WHERE p.student_id = %s
+            ORDER BY p.placement_id DESC LIMIT 1
+        """, (session['user_id'],))
+        my_placement = cur.fetchone()
+        if my_placement:
+            notifications.append({
+                'icon': '🎉',
+                'message': f'You are placed at {my_placement[0]} — {my_placement[1]} LPA!',
+                'type': 'success'
+            })
+        else:
+            notifications.append({
+                'icon': '💡',
+                'message': 'Check ML Predictor to know your placement chances!',
+                'type': 'info'
+            })
+
     cur.close()
 
     return render_template('dashboard.html',
@@ -123,6 +232,7 @@ def dashboard():
         avg_package=round(avg_package, 2),
         max_package=round(max_package, 2),
         recent=recent,
+        notifications=notifications,
         user_name=session['user_name']
     )
 
@@ -157,6 +267,109 @@ def add_student():
         return redirect(url_for('students'))
     return render_template('add_student.html', user_name=session['user_name'])
 
+
+@app.route('/edit_student/<int:student_id>', methods=['GET', 'POST'])
+@login_required
+def edit_student(student_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        branch = request.form['branch']
+        cgpa = request.form['cgpa']
+        skills = request.form['skills']
+        cur.execute("""
+            UPDATE students
+            SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s
+            WHERE student_id=%s
+        """, (name, email, branch, cgpa, skills, student_id))
+        mysql.connection.commit()
+        cur.close()
+        flash('Student updated successfully!', 'success')
+        return redirect(url_for('students'))
+    cur.execute("SELECT * FROM students WHERE student_id=%s", (student_id,))
+    student = cur.fetchone()
+    cur.close()
+    return render_template('edit_student.html', student=student, user_name=session['user_name'])
+
+
+@app.route('/delete_student/<int:student_id>')
+@login_required
+def delete_student(student_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM students WHERE student_id=%s", (student_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash('Student deleted successfully!', 'success')
+    return redirect(url_for('students'))
+
+
+@app.route('/upload_csv', methods=['GET', 'POST'])
+@login_required
+def upload_csv():
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    if request.method == 'POST':
+        if 'csv_file' not in request.files:
+            flash('No file selected!', 'danger')
+            return redirect(url_for('upload_csv'))
+        file = request.files['csv_file']
+        if file.filename == '':
+            flash('No file selected!', 'danger')
+            return redirect(url_for('upload_csv'))
+        if not file.filename.endswith('.csv'):
+            flash('Only CSV files allowed!', 'danger')
+            return redirect(url_for('upload_csv'))
+        try:
+            stream = io.StringIO(file.stream.read().decode('utf-8'))
+            reader = csv.DictReader(stream)
+            required_columns = ['name', 'email', 'branch', 'cgpa', 'skills', 'password']
+            rows = list(reader)
+            if not rows:
+                flash('CSV file is empty!', 'danger')
+                return redirect(url_for('upload_csv'))
+            missing = [col for col in required_columns if col not in rows[0].keys()]
+            if missing:
+                flash(f'Missing columns: {", ".join(missing)}', 'danger')
+                return redirect(url_for('upload_csv'))
+            cur = mysql.connection.cursor()
+            success = 0
+            errors = 0
+            for row in rows:
+                try:
+                    hashed_password = generate_password_hash(str(row['password']))
+                    cur.execute("""
+                        INSERT INTO students
+                        (name, email, branch, cgpa, skills, password, role)
+                        VALUES (%s, %s, %s, %s, %s, %s, 'student')
+                    """, (
+                        str(row['name']),
+                        str(row['email']),
+                        str(row['branch']),
+                        float(row['cgpa']),
+                        str(row['skills']),
+                        hashed_password
+                    ))
+                    mysql.connection.commit()
+                    success += 1
+                except Exception:
+                    errors += 1
+                    continue
+            cur.close()
+            flash(f'✅ {success} students added successfully! ❌ {errors} errors skipped.', 'success')
+            return redirect(url_for('students'))
+        except Exception as e:
+            flash(f'Error reading CSV: {str(e)}', 'danger')
+            return redirect(url_for('upload_csv'))
+    return render_template('upload_csv.html', user_name=session['user_name'])
+
 @app.route('/companies')
 @login_required
 def companies():
@@ -185,6 +398,47 @@ def add_company():
         flash('Company added successfully!', 'success')
         return redirect(url_for('companies'))
     return render_template('add_company.html', user_name=session['user_name'])
+
+
+@app.route('/edit_company/<int:company_id>', methods=['GET', 'POST'])
+@login_required
+def edit_company(company_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    if request.method == 'POST':
+        name = request.form['company_name']
+        package = request.form['package']
+        skills = request.form['required_skills']
+        visit_date = request.form['visit_date']
+        cur.execute("""
+            UPDATE companies
+            SET company_name=%s, package=%s, required_skills=%s, visit_date=%s
+            WHERE company_id=%s
+        """, (name, package, skills, visit_date, company_id))
+        mysql.connection.commit()
+        cur.close()
+        flash('Company updated successfully!', 'success')
+        return redirect(url_for('companies'))
+    cur.execute("SELECT * FROM companies WHERE company_id=%s", (company_id,))
+    company = cur.fetchone()
+    cur.close()
+    return render_template('edit_company.html', company=company, user_name=session['user_name'])
+
+
+@app.route('/delete_company/<int:company_id>')
+@login_required
+def delete_company(company_id):
+    if session.get('role') != 'admin':
+        flash('Access denied!', 'danger')
+        return redirect(url_for('dashboard'))
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM companies WHERE company_id=%s", (company_id,))
+    mysql.connection.commit()
+    cur.close()
+    flash('Company deleted successfully!', 'success')
+    return redirect(url_for('companies'))
 
 @app.route('/placements')
 @login_required
@@ -216,12 +470,14 @@ def add_placement():
             (student_id, company_id, year, status)
         )
         mysql.connection.commit()
+        # Fetch student and company for email — cursor still open
         cur.execute("SELECT name, email FROM students WHERE student_id=%s", (student_id,))
         student = cur.fetchone()
         cur.execute("SELECT company_name, package FROM companies WHERE company_id=%s", (company_id,))
         company = cur.fetchone()
         cur.close()
-        if student and company:
+        # Send congratulations email
+        if student and company and os.environ.get('MAIL_USERNAME'):
             try:
                 msg = Message(
                     '🎉 Congratulations! Placement Confirmed',
@@ -233,10 +489,10 @@ def add_placement():
 🎉 Congratulations! You have been placed at {company[0]}!
 
 📋 Placement Details:
-   Company: {company[0]}
-   Package: {company[1]} LPA
-   Year: {year}
-   Status: {status}
+   Company  : {company[0]}
+   Package  : {company[1]} LPA
+   Year     : {year}
+   Status   : {status}
 
 Keep up the great work!
 
@@ -255,166 +511,6 @@ Placement Analytics Team'''
     return render_template('add_placement.html',
         students=students, companies=companies, user_name=session['user_name'])
 
-@app.route('/analytics')
-@login_required
-def analytics():
-    cur = mysql.connection.cursor()
-
-    cur.execute("""
-        SELECT c.company_name, COUNT(*) as count
-        FROM placements p
-        JOIN companies c ON p.company_id = c.company_id
-        GROUP BY c.company_name ORDER BY count DESC
-    """)
-    company_data = cur.fetchall()
-    company_labels = [r[0] for r in company_data]
-    company_counts = [r[1] for r in company_data]
-
-    cur.execute("""
-        SELECT year, COUNT(*) as count FROM placements
-        GROUP BY year ORDER BY year
-    """)
-    year_data = cur.fetchall()
-    year_labels = [str(r[0]) for r in year_data]
-    year_counts = [r[1] for r in year_data]
-
-    cur.execute("""
-        SELECT s.branch, COUNT(*) as count
-        FROM placements p
-        JOIN students s ON p.student_id = s.student_id
-        GROUP BY s.branch
-    """)
-    branch_data = cur.fetchall()
-    branch_labels = [r[0] for r in branch_data]
-    branch_counts = [r[1] for r in branch_data]
-
-    cur.execute("""
-        SELECT c.company_name, c.package
-        FROM placements p
-        JOIN companies c ON p.company_id = c.company_id
-        ORDER BY c.package DESC
-    """)
-    pkg_data = cur.fetchall()
-    pkg_labels = [r[0] for r in pkg_data]
-    pkg_values = [r[1] for r in pkg_data]
-
-    # Skill demand analysis
-    cur.execute("SELECT required_skills FROM companies")
-    all_skills_raw = cur.fetchall()
-    all_skills = []
-    for row in all_skills_raw:
-        if row[0]:
-            all_skills.extend([s.strip() for s in row[0].split(',')])
-    skill_counts = Counter(all_skills).most_common(8)
-    skill_labels = [s[0] for s in skill_counts]
-    skill_values = [s[1] for s in skill_counts]
-
-    cur.close()
-
-    return render_template('analytics.html',
-        company_labels=json.dumps(company_labels),
-        company_counts=json.dumps(company_counts),
-        year_labels=json.dumps(year_labels),
-        year_counts=json.dumps(year_counts),
-        branch_labels=json.dumps(branch_labels),
-        branch_counts=json.dumps(branch_counts),
-        pkg_labels=json.dumps(pkg_labels),
-        pkg_values=json.dumps(pkg_values),
-        skill_labels=json.dumps(skill_labels),
-        skill_values=json.dumps(skill_values),
-        user_name=session['user_name']
-    )
-
-@app.route('/api/stats')
-@login_required
-def api_stats():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT COUNT(*) FROM students")
-    students = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM placements")
-    placed = cur.fetchone()[0]
-    cur.execute("SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id")
-    avg_pkg = cur.fetchone()[0] or 0
-    cur.close()
-    return jsonify({
-        'total_students': students,
-        'total_placed': placed,
-        'placement_rate': round((placed / students) * 100, 1) if students else 0,
-        'avg_package': round(avg_pkg, 2)
-    })
-@app.route('/predict', methods=['GET', 'POST'])
-@login_required
-def predict():
-    result = None
-    if request.method == 'POST':
-        cgpa = float(request.form['cgpa'])
-        skills = request.form['skills']
-        skill_count = len([s.strip() for s in skills.split(',')])
-        
-        if cgpa >= 9.0 and skill_count >= 5:
-            chance = 95
-        elif cgpa >= 8.5 and skill_count >= 4:
-            chance = 85
-        elif cgpa >= 8.0 and skill_count >= 3:
-            chance = 75
-        elif cgpa >= 7.5 and skill_count >= 2:
-            chance = 65
-        elif cgpa >= 7.0 and skill_count >= 1:
-            chance = 50
-        else:
-            chance = 30
-
-        if chance >= 80:
-            level = 'High'
-            color = 'green'
-            emoji = '🔥'
-        elif chance >= 60:
-            level = 'Medium'
-            color = 'orange'
-            emoji = '⚡'
-        else:
-            level = 'Low'
-            color = 'red'
-            emoji = '📚'
-
-        result = {
-            'chance': chance,
-            'level': level,
-            'color': color,
-            'emoji': emoji,
-            'cgpa': cgpa,
-            'skills': skill_count
-        }
-
-    return render_template('predict.html', 
-        result=result, 
-        user_name=session['user_name'])
-
-@app.route('/delete_student/<int:student_id>')
-@login_required
-def delete_student(student_id):
-    if session.get('role') != 'admin':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('dashboard'))
-    cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM students WHERE student_id=%s", (student_id,))
-    mysql.connection.commit()
-    cur.close()
-    flash('Student deleted successfully!', 'success')
-    return redirect(url_for('students'))
-
-@app.route('/delete_company/<int:company_id>')
-@login_required
-def delete_company(company_id):
-    if session.get('role') != 'admin':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('dashboard'))
-    cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM companies WHERE company_id=%s", (company_id,))
-    mysql.connection.commit()
-    cur.close()
-    flash('Company deleted successfully!', 'success')
-    return redirect(url_for('companies'))
 
 @app.route('/delete_placement/<int:placement_id>')
 @login_required
@@ -429,63 +525,94 @@ def delete_placement(placement_id):
     flash('Placement deleted successfully!', 'success')
     return redirect(url_for('placements'))
 
-@app.route('/edit_student/<int:student_id>', methods=['GET', 'POST'])
+@app.route('/analytics')
 @login_required
-def edit_student(student_id):
-    if session.get('role') != 'admin':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('dashboard'))
+def analytics():
     cur = mysql.connection.cursor()
+    cur.execute("""
+        SELECT c.company_name, COUNT(*) as count
+        FROM placements p
+        JOIN companies c ON p.company_id = c.company_id
+        GROUP BY c.company_name ORDER BY count DESC
+    """)
+    company_data = cur.fetchall()
+    company_labels = [r[0] for r in company_data]
+    company_counts = [r[1] for r in company_data]
+    cur.execute("SELECT year, COUNT(*) as count FROM placements GROUP BY year ORDER BY year")
+    year_data = cur.fetchall()
+    year_labels = [str(r[0]) for r in year_data]
+    year_counts = [r[1] for r in year_data]
+    cur.execute("""
+        SELECT s.branch, COUNT(*) as count
+        FROM placements p
+        JOIN students s ON p.student_id = s.student_id
+        GROUP BY s.branch
+    """)
+    branch_data = cur.fetchall()
+    branch_labels = [r[0] for r in branch_data]
+    branch_counts = [r[1] for r in branch_data]
+    cur.execute("""
+        SELECT c.company_name, c.package
+        FROM placements p
+        JOIN companies c ON p.company_id = c.company_id
+        ORDER BY c.package DESC
+    """)
+    pkg_data = cur.fetchall()
+    pkg_labels = [r[0] for r in pkg_data]
+    pkg_values = [r[1] for r in pkg_data]
+    cur.execute("SELECT required_skills FROM companies")
+    all_skills_raw = cur.fetchall()
+    all_skills = []
+    for row in all_skills_raw:
+        if row[0]:
+            all_skills.extend([s.strip() for s in row[0].split(',')])
+    skill_counts = Counter(all_skills).most_common(8)
+    skill_labels = [s[0] for s in skill_counts]
+    skill_values = [s[1] for s in skill_counts]
+    cur.close()
+    return render_template('analytics.html',
+        company_labels=json.dumps(company_labels),
+        company_counts=json.dumps(company_counts),
+        year_labels=json.dumps(year_labels),
+        year_counts=json.dumps(year_counts),
+        branch_labels=json.dumps(branch_labels),
+        branch_counts=json.dumps(branch_counts),
+        pkg_labels=json.dumps(pkg_labels),
+        pkg_values=json.dumps(pkg_values),
+        skill_labels=json.dumps(skill_labels),
+        skill_values=json.dumps(skill_values),
+        user_name=session['user_name']
+    )
+
+@app.route('/predict', methods=['GET', 'POST'])
+@login_required
+def predict():
+    result = None
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        branch = request.form['branch']
-        cgpa = request.form['cgpa']
+        cgpa = float(request.form['cgpa'])
         skills = request.form['skills']
-        cur.execute("""
-            UPDATE students 
-            SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s 
-            WHERE student_id=%s
-        """, (name, email, branch, cgpa, skills, student_id))
-        mysql.connection.commit()
-        cur.close()
-        flash('Student updated successfully!', 'success')
-        return redirect(url_for('students'))
-    cur.execute("SELECT * FROM students WHERE student_id=%s", (student_id,))
-    student = cur.fetchone()
-    cur.close()
-    return render_template('edit_student.html',
-        student=student,
-        user_name=session['user_name'])
-
-
-@app.route('/edit_company/<int:company_id>', methods=['GET', 'POST'])
-@login_required
-def edit_company(company_id):
-    if session.get('role') != 'admin':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('dashboard'))
-    cur = mysql.connection.cursor()
-    if request.method == 'POST':
-        name = request.form['company_name']
-        package = request.form['package']
-        skills = request.form['required_skills']
-        visit_date = request.form['visit_date']
-        cur.execute("""
-            UPDATE companies 
-            SET company_name=%s, package=%s, required_skills=%s, visit_date=%s 
-            WHERE company_id=%s
-        """, (name, package, skills, visit_date, company_id))
-        mysql.connection.commit()
-        cur.close()
-        flash('Company updated successfully!', 'success')
-        return redirect(url_for('companies'))
-    cur.execute("SELECT * FROM companies WHERE company_id=%s", (company_id,))
-    company = cur.fetchone()
-    cur.close()
-    return render_template('edit_company.html',
-        company=company,
-        user_name=session['user_name'])
+        skill_count = len([s.strip() for s in skills.split(',')])
+        if cgpa >= 9.0 and skill_count >= 5:
+            chance = 95
+        elif cgpa >= 8.5 and skill_count >= 4:
+            chance = 85
+        elif cgpa >= 8.0 and skill_count >= 3:
+            chance = 75
+        elif cgpa >= 7.5 and skill_count >= 2:
+            chance = 65
+        elif cgpa >= 7.0 and skill_count >= 1:
+            chance = 50
+        else:
+            chance = 30
+        if chance >= 80:
+            level, color, emoji = 'High', 'green', '🔥'
+        elif chance >= 60:
+            level, color, emoji = 'Medium', 'orange', '⚡'
+        else:
+            level, color, emoji = 'Low', 'red', '📚'
+        result = {'chance': chance, 'level': level, 'color': color,
+                  'emoji': emoji, 'cgpa': cgpa, 'skills': skill_count}
+    return render_template('predict.html', result=result, user_name=session['user_name'])
 
 @app.route('/download_report')
 @login_required
@@ -493,7 +620,6 @@ def download_report():
     if session.get('role') != 'admin':
         flash('Access denied!', 'danger')
         return redirect(url_for('dashboard'))
-
     cur = mysql.connection.cursor()
     cur.execute("""
         SELECT s.name, c.company_name, c.package, p.year, p.status, s.branch
@@ -503,34 +629,23 @@ def download_report():
         ORDER BY p.year DESC
     """)
     placements = cur.fetchall()
-
     cur.execute("SELECT COUNT(*) FROM students")
     total_students = cur.fetchone()[0]
-
     cur.execute("SELECT COUNT(*) FROM placements")
     total_placed = cur.fetchone()[0]
-
     cur.execute("SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id")
     avg_pkg = cur.fetchone()[0] or 0
-
     cur.execute("SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id")
     max_pkg = cur.fetchone()[0] or 0
     cur.close()
-
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     styles = getSampleStyleSheet()
     elements = []
-
-    # Title
-    title_style = styles['Title']
-    elements.append(Paragraph('Smart Placement Analytics Report', title_style))
+    elements.append(Paragraph('Smart Placement Analytics Report', styles['Title']))
     elements.append(Spacer(1, 20))
-
-    # Summary Stats
     elements.append(Paragraph('Summary Statistics', styles['Heading2']))
     elements.append(Spacer(1, 10))
-
     summary_data = [
         ['Metric', 'Value'],
         ['Total Students', str(total_students)],
@@ -539,7 +654,6 @@ def download_report():
         ['Highest Package', f'{round(max_pkg, 2)} LPA'],
         ['Placement Rate', f'{round((total_placed/total_students)*100, 1) if total_students else 0}%'],
     ]
-
     summary_table = Table(summary_data, colWidths=[250, 250])
     summary_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2563eb')),
@@ -555,19 +669,12 @@ def download_report():
     ]))
     elements.append(summary_table)
     elements.append(Spacer(1, 30))
-
-    # Placement Records
     elements.append(Paragraph('Placement Records', styles['Heading2']))
     elements.append(Spacer(1, 10))
-
     if placements:
         placement_data = [['Student Name', 'Company', 'Package (LPA)', 'Year', 'Branch', 'Status']]
         for p in placements:
-            placement_data.append([
-                str(p[0]), str(p[1]), str(p[2]),
-                str(p[3]), str(p[5]), str(p[4])
-            ])
-
+            placement_data.append([str(p[0]), str(p[1]), str(p[2]), str(p[3]), str(p[5]), str(p[4])])
         placement_table = Table(placement_data, colWidths=[110, 100, 80, 50, 70, 80])
         placement_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
@@ -584,160 +691,12 @@ def download_report():
         elements.append(placement_table)
     else:
         elements.append(Paragraph('No placement records found.', styles['Normal']))
-
     doc.build(elements)
     buffer.seek(0)
-
     response = make_response(buffer.getvalue())
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'attachment; filename=placement_report.pdf'
     return response
-
-@app.route('/forgot_password', methods=['GET', 'POST'])
-def forgot_password():
-    if request.method == 'POST':
-        email = request.form['email']
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM students WHERE email=%s", (email,))
-        user = cur.fetchone()
-        cur.close()
-        if user:
-            token = secrets.token_urlsafe(32)
-            reset_tokens[token] = email
-            reset_link = url_for('reset_password', token=token, _external=True)
-            try:
-                msg = Message(
-                    'Password Reset - Placement Analytics',
-                    sender=os.environ.get('MAIL_USERNAME'),
-                    recipients=[email]
-                )
-                msg.body = f'''Hello {user[1]},
-
-Click the link below to reset your password:
-{reset_link}
-
-This link will work only once.
-
-If you did not request this, ignore this email.
-
-Regards,
-Placement Analytics Team'''
-                mail.send(msg)
-                flash('Password reset link sent to your email!', 'success')
-            except:
-                flash('Error sending email. Please try again.', 'danger')
-        else:
-            flash('Email not found!', 'danger')
-    return render_template('forgot_password.html')
-
-
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    if token not in reset_tokens:
-        flash('Invalid or expired link!', 'danger')
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        new_password = request.form['password']
-        email = reset_tokens[token]
-        hashed = generate_password_hash(new_password)
-
-        cur = mysql.connection.cursor()
-        cur.execute(
-            "UPDATE students SET password=%s WHERE email=%s",
-            (hashed, email)
-        )
-        mysql.connection.commit()
-        cur.close()
-
-        del reset_tokens[token]
-        flash('Password reset successful! Please login.', 'success')
-        return redirect(url_for('login'))
-
-    return render_template('reset_password.html', token=token)
-
-
-@app.route('/upload_csv', methods=['GET', 'POST'])
-@login_required
-def upload_csv():
-    if session.get('role') != 'admin':
-        flash('Access denied!', 'danger')
-        return redirect(url_for('dashboard'))
-
-    if request.method == 'POST':
-        if 'csv_file' not in request.files:
-            flash('No file selected!', 'danger')
-            return redirect(url_for('upload_csv'))
-
-        file = request.files['csv_file']
-
-        if file.filename == '':
-            flash('No file selected!', 'danger')
-            return redirect(url_for('upload_csv'))
-
-        if not file.filename.endswith('.csv'):
-            flash('Only CSV files allowed!', 'danger')
-            return redirect(url_for('upload_csv'))
-
-        try:
-            stream = io.StringIO(file.stream.read().decode('utf-8'))
-            reader = csv.DictReader(stream)
-
-            required_columns = ['name', 'email', 'branch', 'cgpa', 'skills', 'password']
-
-            rows = list(reader)
-
-            if not rows:
-                flash('CSV file is empty!', 'danger')
-                return redirect(url_for('upload_csv'))
-
-            missing = [col for col in required_columns if col not in rows[0].keys()]
-            if missing:
-                flash(f'Missing columns: {", ".join(missing)}', 'danger')
-                return redirect(url_for('upload_csv'))
-
-            cur = mysql.connection.cursor()
-            success = 0
-            errors = 0
-
-            for row in rows:
-                try:
-                    hashed_password = generate_password_hash(str(row['password']))
-
-                    cur.execute("""
-                        INSERT INTO students
-                        (name, email, branch, cgpa, skills, password, role)
-                        VALUES (%s, %s, %s, %s, %s, %s, 'student')
-                    """, (
-                        str(row['name']),
-                        str(row['email']),
-                        str(row['branch']),
-                        float(row['cgpa']),
-                        str(row['skills']),
-                        hashed_password
-                    ))
-
-                    mysql.connection.commit()
-                    success += 1
-
-                except Exception as e:
-                    errors += 1
-                    continue
-
-            cur.close()
-
-            flash(f'✅ {success} students added successfully! ❌ {errors} errors skipped.', 'success')
-            return redirect(url_for('students'))
-
-        except Exception as e:
-            flash(f'Error reading CSV: {str(e)}', 'danger')
-            return redirect(url_for('upload_csv'))
-
-    return render_template('upload_csv.html', user_name=session['user_name'])
-
-import openpyxl
-from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.utils import get_column_letter
 
 @app.route('/export_excel')
 @login_required
@@ -745,7 +704,6 @@ def export_excel():
     if session.get('role') != 'admin':
         flash('Access denied!', 'danger')
         return redirect(url_for('dashboard'))
-
     cur = mysql.connection.cursor()
     cur.execute("""
         SELECT s.name, s.email, s.branch, s.cgpa, s.skills,
@@ -756,23 +714,17 @@ def export_excel():
         ORDER BY p.year DESC
     """)
     placements = cur.fetchall()
-
     cur.execute("SELECT name, email, branch, cgpa, skills FROM students")
     all_students = cur.fetchall()
-
     cur.execute("SELECT company_name, package, required_skills, visit_date FROM companies")
     all_companies = cur.fetchall()
     cur.close()
-
     wb = openpyxl.Workbook()
-
     ws1 = wb.active
     ws1.title = "Placements"
-
     header_fill = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
     header_font = Font(color="FFFFFF", bold=True, size=11)
     center = Alignment(horizontal='center', vertical='center')
-
     headers1 = ['Student Name', 'Email', 'Branch', 'CGPA', 'Skills',
                 'Company', 'Package (LPA)', 'Year', 'Status']
     for col, header in enumerate(headers1, 1):
@@ -780,18 +732,14 @@ def export_excel():
         cell.fill = header_fill
         cell.font = header_font
         cell.alignment = center
-
     for row_idx, row in enumerate(placements, 2):
         for col_idx, value in enumerate(row, 1):
             cell = ws1.cell(row=row_idx, column=col_idx, value=value)
             cell.alignment = center
             if row_idx % 2 == 0:
                 cell.fill = PatternFill(start_color="EFF6FF", end_color="EFF6FF", fill_type="solid")
-
     for col in range(1, len(headers1) + 1):
         ws1.column_dimensions[get_column_letter(col)].width = 18
-
-    # ── Sheet 2: Students ──
     ws2 = wb.create_sheet("Students")
     headers2 = ['Name', 'Email', 'Branch', 'CGPA', 'Skills']
     for col, header in enumerate(headers2, 1):
@@ -799,16 +747,12 @@ def export_excel():
         cell.fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
         cell.font = Font(color="FFFFFF", bold=True)
         cell.alignment = center
-
     for row_idx, row in enumerate(all_students, 2):
         for col_idx, value in enumerate(row, 1):
             cell = ws2.cell(row=row_idx, column=col_idx, value=value)
             cell.alignment = center
-
     for col in range(1, len(headers2) + 1):
         ws2.column_dimensions[get_column_letter(col)].width = 20
-
-    # ── Sheet 3: Companies ──
     ws3 = wb.create_sheet("Companies")
     headers3 = ['Company Name', 'Package (LPA)', 'Required Skills', 'Visit Date']
     for col, header in enumerate(headers3, 1):
@@ -816,19 +760,15 @@ def export_excel():
         cell.fill = PatternFill(start_color="10B981", end_color="10B981", fill_type="solid")
         cell.font = Font(color="FFFFFF", bold=True)
         cell.alignment = center
-
     for row_idx, row in enumerate(all_companies, 2):
         for col_idx, value in enumerate(row, 1):
             cell = ws3.cell(row=row_idx, column=col_idx, value=str(value) if value else '')
             cell.alignment = center
-
     for col in range(1, len(headers3) + 1):
         ws3.column_dimensions[get_column_letter(col)].width = 22
-
     output = BytesIO()
     wb.save(output)
     output.seek(0)
-
     response = make_response(output.getvalue())
     response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     response.headers['Content-Disposition'] = 'attachment; filename=placement_data.xlsx'
@@ -853,6 +793,25 @@ def profile():
         student=student,
         my_placements=my_placements,
         user_name=session['user_name'])
+
+@app.route('/api/stats')
+@login_required
+def api_stats():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT COUNT(*) FROM students")
+    students = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM placements")
+    placed = cur.fetchone()[0]
+    cur.execute("SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id")
+    avg_pkg = cur.fetchone()[0] or 0
+    cur.close()
+    return jsonify({
+        'total_students': students,
+        'total_placed': placed,
+        'placement_rate': round((placed / students) * 100, 1) if students else 0,
+        'avg_package': round(avg_pkg, 2)
+    })
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
