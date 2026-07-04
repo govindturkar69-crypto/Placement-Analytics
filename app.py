@@ -192,12 +192,12 @@ def dashboard():
                 'type': 'success'
             })
 
-        cur.execute("SELECT COUNT(*) FROM students WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")
+        cur.execute("SELECT COUNT(*) FROM students WHERE role='student'")
         new_students = cur.fetchone()[0]
         if new_students:
             notifications.append({
                 'icon': '👨‍🎓',
-                'message': f'{new_students} new student(s) added this week',
+                'message': f'Total {new_students} student(s) registered',
                 'type': 'info'
             })
 
