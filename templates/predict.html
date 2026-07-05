@@ -1,148 +1,205 @@
 {% extends "base.html" %}
-{% block title %}Placement Predictor{% endblock %}
+{% block title %}ML Placement Predictor{% endblock %}
 
 {% block content %}
 <div class="page-header">
-  <h1>🤖 Placement Predictor</h1>
-  <p>Enter your details to predict your placement chances</p>
+  <h1>🤖 ML Placement Predictor</h1>
+  <p>Advanced prediction using weighted ML scoring model</p>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1000px">
 
   <!-- Input Form -->
   <div class="card">
     <div class="card-title">📝 Enter Your Details</div>
-    <div>
-      <div class="form-group">
-        <label>Your CGPA</label>
-        <input type="number" id="cgpa" class="form-control" 
-               step="0.1" min="0" max="10" placeholder="e.g. 8.5">
-      </div>
-      <div class="form-group">
-        <label>Your Skills (comma separated)</label>
-        <input type="text" id="skills" class="form-control" 
-               placeholder="e.g. Python, Java, MySQL, React">
-        <small style="color:#94a3b8;font-size:12px;margin-top:4px;display:block">
-          More skills = Higher chances!
-        </small>
-      </div>
-      <button class="btn-primary" onclick="submitPredict()">
-        🔮 Predict My Chances
-      </button>
+
+    <div class="form-group">
+      <label>CGPA (out of 10)</label>
+      <input type="number" id="cgpa" class="form-control"
+             step="0.1" min="0" max="10" placeholder="e.g. 8.5">
     </div>
+
+    <div class="form-group">
+      <label>Skills (comma separated)</label>
+      <input type="text" id="skills" class="form-control"
+             placeholder="Python, Java, SQL, React, DSA">
+      <small style="color:#94a3b8;font-size:12px;margin-top:4px;display:block">
+        High demand: Python, Java, React, DSA, SQL, AWS
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>Branch</label>
+      <select id="branch" class="form-control">
+        <option value="CSE">CSE — Computer Science</option>
+        <option value="IT">IT — Information Technology</option>
+        <option value="ECE">ECE — Electronics</option>
+        <option value="EEE">EEE — Electrical</option>
+        <option value="Mechanical">Mechanical</option>
+        <option value="Civil">Civil</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Number of Backlogs</label>
+      <select id="backlogs" class="form-control">
+        <option value="0">0 — No backlogs ✅</option>
+        <option value="1">1 backlog</option>
+        <option value="2">2 backlogs</option>
+        <option value="3">3 backlogs</option>
+        <option value="5">4+ backlogs</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Internship Experience</label>
+      <select id="internship" class="form-control">
+        <option value="yes">✅ Yes — I have internship experience</option>
+        <option value="no">❌ No — No internship yet</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Number of Projects Built</label>
+      <select id="projects" class="form-control">
+        <option value="0">0 projects</option>
+        <option value="1">1 project</option>
+        <option value="2">2 projects</option>
+        <option value="3">3 projects</option>
+        <option value="4">4+ projects</option>
+      </select>
+    </div>
+
+    <button class="btn-primary" onclick="submitPredict()">
+      🔮 Predict My Placement Chance
+    </button>
   </div>
 
   <!-- Result -->
-  <div class="card" id="resultCard" style="display:{% if result %}block{% else %}none{% endif %}">
-    {% if result %}
-    <div class="card-title">📊 Your Result</div>
-    <div style="text-align:center;padding:20px">
-      <div style="font-size:64px;margin-bottom:16px">{{ result.emoji }}</div>
-      <div style="font-size:48px;font-weight:800;color:
+  {% if result %}
+  <div>
+    <!-- Main Score -->
+    <div class="card" style="text-align:center;margin-bottom:16px">
+      <div style="font-size:56px;margin-bottom:8px">{{ result.emoji }}</div>
+      <div style="font-size:52px;font-weight:800;color:
         {% if result.color == 'green' %}#10b981
         {% elif result.color == 'orange' %}#f59e0b
         {% else %}#ef4444{% endif %}">
         {{ result.chance }}%
       </div>
-      <div style="font-size:18px;font-weight:700;margin:8px 0;color:#1e293b">
+      <div style="font-size:18px;font-weight:700;margin:8px 0">
         {{ result.level }} Placement Chance
-      </div>
-      <div style="font-size:13px;color:#64748b;margin-top:12px">
-        CGPA: <strong>{{ result.cgpa }}</strong> &nbsp;|&nbsp; 
-        Skills: <strong>{{ result.skills }}</strong>
       </div>
 
       <!-- Progress Bar -->
-      <div style="margin-top:20px;background:#f1f5f9;border-radius:10px;height:12px;overflow:hidden">
-        <div style="height:100%;width:{{ result.chance }}%;border-radius:10px;background:
-          {% if result.color == 'green' %}linear-gradient(90deg,#10b981,#6ee7b7)
+      <div style="margin:16px 0;background:#f1f5f9;border-radius:10px;height:14px;overflow:hidden">
+        <div style="height:100%;width:{{ result.chance }}%;border-radius:10px;
+          background:{% if result.color == 'green' %}linear-gradient(90deg,#10b981,#6ee7b7)
           {% elif result.color == 'orange' %}linear-gradient(90deg,#f59e0b,#fcd34d)
           {% else %}linear-gradient(90deg,#ef4444,#fca5a5){% endif %};
           transition:width 1s ease">
         </div>
       </div>
-
-      <!-- Tips -->
-      <div style="margin-top:20px;text-align:left;background:#f8fafc;border-radius:10px;padding:16px">
-        <div style="font-size:13px;font-weight:700;margin-bottom:8px">💡 Tips to Improve:</div>
-        {% if result.chance < 60 %}
-        <div style="font-size:13px;color:#64748b">
-          ✅ Improve your CGPA above 7.5<br>
-          ✅ Learn at least 3-4 in-demand skills<br>
-          ✅ Practice DSA regularly<br>
-          ✅ Build 2-3 projects
-        </div>
-        {% elif result.chance < 80 %}
-        <div style="font-size:13px;color:#64748b">
-          ✅ Add more technical skills<br>
-          ✅ Practice mock interviews<br>
-          ✅ Improve communication skills<br>
-          ✅ Do internships
-        </div>
-        {% else %}
-        <div style="font-size:13px;color:#64748b">
-          🔥 You are well prepared!<br>
-          ✅ Keep practicing DSA<br>
-          ✅ Apply to top companies<br>
-          ✅ Stay confident!
-        </div>
-        {% endif %}
-      </div>
     </div>
-    {% endif %}
+
+    <!-- Score Breakdown -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">📊 Score Breakdown</div>
+      {% set score_items = [
+        ('🎓 CGPA', result.scores.cgpa, '#2563eb'),
+        ('💻 Skills', result.scores.skills, '#10b981'),
+        ('🏫 Branch', result.scores.branch, '#8b5cf6'),
+        ('📋 Backlogs', result.scores.backlog, '#f59e0b'),
+        ('🏢 Internship', result.scores.internship, '#0ea5e9'),
+        ('🚀 Projects', result.scores.projects, '#ec4899'),
+      ] %}
+      {% for label, score, clr in score_items %}
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>{{ label }}</span>
+          <span style="font-weight:700;color:{{ clr }}">{{ score }}%</span>
+        </div>
+        <div style="background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden">
+          <div style="height:100%;width:{{ score }}%;background:{{ clr }};border-radius:6px;transition:width 1s ease"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Company Match -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">🏢 Company Match</div>
+      {% for c in result.company_matches %}
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;background:#f8fafc;margin-bottom:8px">
+        <span style="font-size:18px">{{ c.icon }}</span>
+        <span style="font-size:14px;font-weight:600;color:{{ c.color }}">{{ c.name }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Tips -->
+    <div class="card">
+      <div class="card-title">💡 Tips to Improve</div>
+      {% for tip in result.tips %}
+      <div style="padding:8px 12px;border-radius:8px;background:#f8fafc;margin-bottom:8px;font-size:13px;color:#1e293b">
+        {{ tip }}
+      </div>
+      {% endfor %}
+    </div>
   </div>
 
-  <!-- Empty state -->
-  {% if not result %}
-  <div class="card" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#94a3b8">
-    <div style="font-size:48px">🎯</div>
-    <div style="font-size:16px;font-weight:600">Your prediction will appear here</div>
-    <div style="font-size:13px">Fill in your details and click Predict!</div>
+  {% else %}
+  <!-- Empty State -->
+  <div class="card" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#94a3b8;min-height:300px">
+    <div style="font-size:56px">🎯</div>
+    <div style="font-size:16px;font-weight:600">Fill the form to get your prediction</div>
+    <div style="font-size:13px">Our ML model analyzes 6 factors</div>
   </div>
   {% endif %}
 
 </div>
 
-<!-- Tips Cards -->
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:24px;max-width:900px">
+<!-- Info Cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-top:24px;max-width:1000px">
+  <div class="stat-card blue">
+    <div class="stat-icon">📊</div>
+    <div class="stat-value" style="font-size:18px">6 Factors</div>
+    <div class="stat-label">Analyzed by model</div>
+  </div>
   <div class="stat-card green">
     <div class="stat-icon">🎓</div>
-    <div class="stat-value" style="font-size:20px">9+ CGPA</div>
-    <div class="stat-label">95% placement chance</div>
-  </div>
-  <div class="stat-card blue">
-    <div class="stat-icon">💻</div>
-    <div class="stat-value" style="font-size:20px">5+ Skills</div>
-    <div class="stat-label">Much higher chances</div>
-  </div>
-  <div class="stat-card orange">
-    <div class="stat-icon">🏆</div>
-    <div class="stat-value" style="font-size:20px">Projects</div>
-    <div class="stat-label">Build real projects</div>
+    <div class="stat-value" style="font-size:18px">30%</div>
+    <div class="stat-label">CGPA weightage</div>
   </div>
   <div class="stat-card purple">
-    <div class="stat-icon">📝</div>
-    <div class="stat-value" style="font-size:20px">DSA</div>
-    <div class="stat-label">Practice daily</div>
+    <div class="stat-icon">💻</div>
+    <div class="stat-value" style="font-size:18px">25%</div>
+    <div class="stat-label">Skills weightage</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-icon">🏢</div>
+    <div class="stat-value" style="font-size:18px">10%</div>
+    <div class="stat-label">Internship bonus</div>
   </div>
 </div>
 
 <script>
 function submitPredict() {
+  const fields = ['cgpa','skills','branch','backlogs','internship','projects'];
   const cgpa = document.getElementById('cgpa').value;
   const skills = document.getElementById('skills').value;
   if (!cgpa || !skills) {
-    alert('Please fill in both CGPA and Skills!');
+    alert('Please fill in CGPA and Skills!');
     return;
   }
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = '/predict';
-  ['cgpa', 'skills'].forEach((f, i) => {
+  fields.forEach(f => {
     const inp = document.createElement('input');
     inp.type = 'hidden';
     inp.name = f;
-    inp.value = [cgpa, skills][i];
+    inp.value = document.getElementById(f).value;
     form.appendChild(inp);
   });
   document.body.appendChild(form);
