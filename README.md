@@ -41,7 +41,7 @@
 ![ML Predictor](screenshots/ml-predictor.png)
 
 ### 📋 ML Predictor Results
-![ML Results](screenshots/ml-results.png)
+![ML Results](screenshots/ml-result.png)
 
 ### 👨‍🎓 Students Management
 ![Students](screenshots/students.png)
