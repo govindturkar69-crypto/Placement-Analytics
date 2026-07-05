@@ -36,6 +36,19 @@
   </div>
 </div>
 
+<!-- Notifications -->
+{% if notifications %}
+<div class="card" style="margin-bottom:24px">
+  <div class="card-title">🔔 Notifications</div>
+  {% for n in notifications %}
+  <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;margin-bottom:8px;background:{% if n.type=='success' %}#ecfdf5{% else %}#eff6ff{% endif %};border-left:4px solid {% if n.type=='success' %}#10b981{% else %}#2563eb{% endif %}">
+    <span style="font-size:20px">{{ n.icon }}</span>
+    <span style="font-size:14px;color:#1e293b">{{ n.message }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Recent Placements -->
 <div class="card">
   <div class="card-title">🕐 Recent Placements</div>
