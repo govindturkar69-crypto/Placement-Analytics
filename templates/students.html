@@ -2,26 +2,47 @@
 {% block title %}Students – Placement Analytics{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <h1>👨‍🎓 Students</h1>
-  <p>Manage all registered students</p>
-</div>
 
-<div class="card">
-  <div class="action-bar">
-    <div class="card-title" style="margin-bottom:0">All Students (<span id="count">{{ students|length }}</span>)</div>
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-row">
+    <div>
+      <h1 style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px">👨‍🎓</span> Students
+      </h1>
+      <p>Manage all registered students — <strong style="color:var(--primary)" id="count">{{ students|length }}</strong> total</p>
+    </div>
     {% if session.role == 'admin' %}
-    <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
+    <div style="display:flex;gap:10px">
+      <a href="{{ url_for('upload_csv') }}" class="btn-outline">
+        📁 Bulk Upload
+      </a>
+      <a href="{{ url_for('add_student') }}" class="btn-add">
+        ➕ Add Student
+      </a>
+    </div>
     {% endif %}
   </div>
-  <div style="margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap">
-    <input type="text" id="searchInput" 
-           placeholder="🔍 Search by name, email, branch, skills..."
-           oninput="filterTable()"
-           style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;width:320px">
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="card" style="padding:16px 20px;margin-bottom:20px">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    <!-- Search -->
+    <div style="position:relative;flex:1;min-width:240px">
+      <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+      <input type="text" id="searchInput"
+             placeholder="Search name, email, branch, skills..."
+             oninput="filterTable()"
+             style="width:100%;padding:10px 14px 10px 40px;border:2px solid var(--border);border-radius:10px;font-size:13.5px;outline:none;font-family:inherit;background:var(--card);color:var(--text);transition:border-color 0.2s"
+             onfocus="this.style.borderColor='#6366f1'"
+             onblur="this.style.borderColor='var(--border)'">
+    </div>
+
+    <!-- Branch Filter -->
     <select id="branchFilter" onchange="filterTable()"
-            style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none">
-      <option value="">All Branches</option>
+            style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13.5px;outline:none;font-family:inherit;background:var(--card);color:var(--text);cursor:pointer;min-width:140px">
+      <option value="">🏫 All Branches</option>
       <option>CSE</option>
       <option>IT</option>
       <option>ECE</option>
@@ -29,65 +50,162 @@
       <option>Mechanical</option>
       <option>Civil</option>
     </select>
+
+    <!-- CGPA Filter -->
     <select id="cgpaFilter" onchange="filterTable()"
-            style="padding:10px 16px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none">
-      <option value="">All CGPA</option>
-      <option value="9">9+ CGPA</option>
-      <option value="8">8+ CGPA</option>
-      <option value="7">7+ CGPA</option>
+            style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13.5px;outline:none;font-family:inherit;background:var(--card);color:var(--text);cursor:pointer;min-width:130px">
+      <option value="">📊 All CGPA</option>
+      <option value="9">9+ CGPA 🔥</option>
+      <option value="8">8+ CGPA ⭐</option>
+      <option value="7">7+ CGPA ✅</option>
       <option value="6">6+ CGPA</option>
     </select>
+
+    <!-- Clear button -->
+    <button onclick="clearFilters()"
+            style="padding:10px 16px;border:2px solid var(--border);border-radius:10px;font-size:13px;background:var(--card);color:var(--muted);cursor:pointer;font-family:inherit;transition:all 0.2s"
+            onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      ✕ Clear
+    </button>
   </div>
+</div>
+
+<!-- Students Table -->
+<div class="card">
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>#</th><th>Name</th><th>Email</th><th>Branch</th><th>CGPA</th><th>Skills</th>
-          {% if session.role == 'admin' %}<th>Actions</th>{% endif %}
+          <th style="width:50px">#</th>
+          <th>Student</th>
+          <th>Email</th>
+          <th>Branch</th>
+          <th>CGPA</th>
+          <th>Skills</th>
+          {% if session.role == 'admin' %}<th style="width:140px">Actions</th>{% endif %}
         </tr>
       </thead>
-      <tbody>
+      <tbody id="studentTable">
         {% for s in students %}
-        <tr>
-          <td>{{ s[0] }}</td>
-          <td><strong>{{ s[1] }}</strong></td>
-          <td>{{ s[2] }}</td>
-          <td><span class="badge badge-info">{{ s[3] }}</span></td>
+        <tr style="animation:fadeUp 0.3s ease {{ loop.index * 0.04 }}s both">
+          <td style="color:var(--muted);font-size:12px;font-weight:600">{{ loop.index }}</td>
+
+          <!-- Name with Avatar -->
           <td>
-            <span class="badge {% if s[4] >= 8.5 %}badge-success{% elif s[4] >= 7.0 %}badge-warning{% else %}badge-muted{% endif %}">
-              {{ s[4] }}
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,
+                {% if loop.index % 5 == 1 %}#6366f1,#818cf8
+                {% elif loop.index % 5 == 2 %}#10b981,#34d399
+                {% elif loop.index % 5 == 3 %}#f59e0b,#fbbf24
+                {% elif loop.index % 5 == 4 %}#ef4444,#f87171
+                {% else %}#8b5cf6,#a78bfa{% endif %}
+                );display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:700;flex-shrink:0">
+                {{ s[1][0].upper() if s[1] else '?' }}
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:13.5px;color:var(--text)">{{ s[1] }}</div>
+                <div style="font-size:11px;color:var(--muted)">ID: {{ s[0] }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Email -->
+          <td style="font-size:13px;color:var(--muted)">{{ s[2] }}</td>
+
+          <!-- Branch -->
+          <td>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;
+              background:{% if s[3]=='CSE' %}#eff6ff{% elif s[3]=='IT' %}#f0fdf4{% elif s[3]=='ECE' %}#fdf4ff{% else %}#fff7ed{% endif %};
+              color:{% if s[3]=='CSE' %}#4f46e5{% elif s[3]=='IT' %}#059669{% elif s[3]=='ECE' %}#9333ea{% else %}#ea580c{% endif %}">
+              {{ s[3] }}
             </span>
           </td>
-          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ s[5] }}</td>
+
+          <!-- CGPA -->
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:14px;font-weight:700;
+                color:{% if s[4] >= 8.5 %}#10b981{% elif s[4] >= 7.0 %}#f59e0b{% else %}#ef4444{% endif %}">
+                {{ s[4] }}
+              </span>
+              <div style="flex:1;height:4px;background:var(--border);border-radius:4px;min-width:40px;max-width:60px;overflow:hidden">
+                <div style="height:100%;width:{{ (s[4] / 10 * 100) | round }}%;
+                  background:{% if s[4] >= 8.5 %}#10b981{% elif s[4] >= 7.0 %}#f59e0b{% else %}#ef4444{% endif %};
+                  border-radius:4px;transition:width 1s ease"></div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Skills -->
+          <td>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;max-width:220px">
+              {% if s[5] %}
+                {% for skill in s[5].split(',')[:3] %}
+                <span style="background:rgba(99,102,241,0.08);color:#6366f1;border:1px solid rgba(99,102,241,0.15);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap">
+                  {{ skill.strip() }}
+                </span>
+                {% endfor %}
+                {% if s[5].split(',')|length > 3 %}
+                <span style="background:var(--border);color:var(--muted);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500">
+                  +{{ s[5].split(',')|length - 3 }}
+                </span>
+                {% endif %}
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- Actions -->
           {% if session.role == 'admin' %}
           <td>
-            <a href="{{ url_for('edit_student', student_id=s[0]) }}" 
-               style="background:#2563eb;color:white;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:12px;margin-right:4px">
-              ✏️ Edit
-            </a>
-            <a href="{{ url_for('delete_student', student_id=s[0]) }}"
-               onclick="return confirm('Are you sure you want to delete this student?')"
-               style="background:#ef4444;color:white;padding:5px 10px;border-radius:6px;text-decoration:none;font-size:12px">
-              🗑️ Delete
-            </a>
+            <div style="display:flex;gap:6px">
+              <a href="{{ url_for('edit_student', student_id=s[0]) }}" class="btn-edit">
+                ✏️ Edit
+              </a>
+              <a href="{{ url_for('delete_student', student_id=s[0]) }}"
+                 onclick="return confirmDelete('{{ s[1] }}')"
+                 class="btn-danger">
+                🗑️
+              </a>
+            </div>
           </td>
           {% endif %}
         </tr>
         {% else %}
-        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No students found.</td></tr>
+        <tr>
+          <td colspan="7" style="text-align:center;padding:60px 20px">
+            <div style="font-size:48px;margin-bottom:12px">👨‍🎓</div>
+            <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">No students found</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Add students manually or bulk upload via CSV</div>
+            {% if session.role == 'admin' %}
+            <div style="display:flex;gap:10px;justify-content:center">
+              <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
+              <a href="{{ url_for('upload_csv') }}" class="btn-outline">📁 Bulk Upload</a>
+            </div>
+            {% endif %}
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+
+  <!-- Results info -->
+  <div style="padding:12px 0 0;border-top:1px solid var(--border);margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12.5px;color:var(--muted)">Showing <strong id="showing">{{ students|length }}</strong> of <strong>{{ students|length }}</strong> students</span>
+    <span style="font-size:12px;color:var(--muted)">Use filters above to narrow results</span>
+  </div>
 </div>
+
 <script>
 function filterTable() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const branch = document.getElementById('branchFilter').value.toLowerCase();
   const cgpa = document.getElementById('cgpaFilter').value;
-  const rows = document.querySelectorAll('tbody tr');
+  const rows = document.querySelectorAll('#studentTable tr');
   let count = 0;
   rows.forEach(row => {
+    if (row.cells.length < 3) return;
     const text = row.innerText.toLowerCase();
     const rowBranch = row.cells[3] ? row.cells[3].innerText.toLowerCase() : '';
     const rowCgpa = row.cells[4] ? parseFloat(row.cells[4].innerText) : 0;
@@ -102,6 +220,19 @@ function filterTable() {
     }
   });
   document.getElementById('count').innerText = count;
+  document.getElementById('showing').innerText = count;
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('branchFilter').value = '';
+  document.getElementById('cgpaFilter').value = '';
+  filterTable();
+}
+
+function confirmDelete(name) {
+  return confirm(`⚠️ Delete "${name}"?\n\nThis action cannot be undone.`);
 }
 </script>
+
 {% endblock %}
