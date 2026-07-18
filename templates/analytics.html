@@ -203,7 +203,7 @@ function animateKPI(id, target) {
   }, 30);
 }
 animateKPI('kpi1', {{ company_labels|length }});
-animateKPI('kpi2', {{ year_counts|sum if year_counts else 0 }});
+animateKPI('kpi2', {{ year_counts|map('int')|sum if year_counts else 0 }});
 animateKPI('kpi3', {{ branch_labels|length }});
 animateKPI('kpi4', {{ skill_labels|length }});
 
