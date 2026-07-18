@@ -10,16 +10,12 @@
       <h1 style="display:flex;align-items:center;gap:10px">
         <span style="font-size:28px">👨‍🎓</span> Students
       </h1>
-      <p>Manage all registered students — <strong style="color:var(--primary)" id="count">{{ students|length }}</strong> total</p>
+      <p>Manage all registered students — <strong style="color:var(--primary)" id="count">{{ students|length }}</strong> showing</p>
     </div>
     {% if session.role == 'admin' %}
     <div style="display:flex;gap:10px">
-      <a href="{{ url_for('upload_csv') }}" class="btn-outline">
-        📁 Bulk Upload
-      </a>
-      <a href="{{ url_for('add_student') }}" class="btn-add">
-        ➕ Add Student
-      </a>
+      <a href="{{ url_for('upload_csv') }}" class="btn-outline">📁 Bulk Upload</a>
+      <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
     </div>
     {% endif %}
   </div>
@@ -28,7 +24,6 @@
 <!-- Search & Filter Bar -->
 <div class="card" style="padding:16px 20px;margin-bottom:20px">
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-    <!-- Search -->
     <div style="position:relative;flex:1;min-width:240px">
       <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
       <input type="text" id="searchInput"
@@ -38,20 +33,12 @@
              onfocus="this.style.borderColor='#6366f1'"
              onblur="this.style.borderColor='var(--border)'">
     </div>
-
-    <!-- Branch Filter -->
     <select id="branchFilter" onchange="filterTable()"
             style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13.5px;outline:none;font-family:inherit;background:var(--card);color:var(--text);cursor:pointer;min-width:140px">
       <option value="">🏫 All Branches</option>
-      <option>CSE</option>
-      <option>IT</option>
-      <option>ECE</option>
-      <option>EEE</option>
-      <option>Mechanical</option>
-      <option>Civil</option>
+      <option>CSE</option><option>IT</option><option>ECE</option>
+      <option>EEE</option><option>Mechanical</option><option>Civil</option>
     </select>
-
-    <!-- CGPA Filter -->
     <select id="cgpaFilter" onchange="filterTable()"
             style="padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13.5px;outline:none;font-family:inherit;background:var(--card);color:var(--text);cursor:pointer;min-width:130px">
       <option value="">📊 All CGPA</option>
@@ -60,8 +47,6 @@
       <option value="7">7+ CGPA ✅</option>
       <option value="6">6+ CGPA</option>
     </select>
-
-    <!-- Clear button -->
     <button onclick="clearFilters()"
             style="padding:10px 16px;border:2px solid var(--border);border-radius:10px;font-size:13px;background:var(--card);color:var(--muted);cursor:pointer;font-family:inherit;transition:all 0.2s"
             onmouseover="this.style.borderColor='#ef4444';this.style.color='#ef4444'"
@@ -89,9 +74,9 @@
       <tbody id="studentTable">
         {% for s in students %}
         <tr style="animation:fadeUp 0.3s ease {{ loop.index * 0.04 }}s both">
-          <td style="color:var(--muted);font-size:12px;font-weight:600">{{ loop.index }}</td>
-
-          <!-- Name with Avatar -->
+          <td style="color:var(--muted);font-size:12px;font-weight:600">
+            {{ ((page - 1) * 20) + loop.index }}
+          </td>
           <td>
             <div style="display:flex;align-items:center;gap:10px">
               <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,
@@ -109,11 +94,7 @@
               </div>
             </div>
           </td>
-
-          <!-- Email -->
           <td style="font-size:13px;color:var(--muted)">{{ s[2] }}</td>
-
-          <!-- Branch -->
           <td>
             <span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:600;
               background:{% if s[3]=='CSE' %}#eff6ff{% elif s[3]=='IT' %}#f0fdf4{% elif s[3]=='ECE' %}#fdf4ff{% else %}#fff7ed{% endif %};
@@ -121,8 +102,6 @@
               {{ s[3] }}
             </span>
           </td>
-
-          <!-- CGPA -->
           <td>
             <div style="display:flex;align-items:center;gap:8px">
               <span style="font-size:14px;font-weight:700;
@@ -132,12 +111,10 @@
               <div style="flex:1;height:4px;background:var(--border);border-radius:4px;min-width:40px;max-width:60px;overflow:hidden">
                 <div style="height:100%;width:{{ (s[4] / 10 * 100) | round }}%;
                   background:{% if s[4] >= 8.5 %}#10b981{% elif s[4] >= 7.0 %}#f59e0b{% else %}#ef4444{% endif %};
-                  border-radius:4px;transition:width 1s ease"></div>
+                  border-radius:4px"></div>
               </div>
             </div>
           </td>
-
-          <!-- Skills -->
           <td>
             <div style="display:flex;flex-wrap:wrap;gap:4px;max-width:220px">
               {% if s[5] %}
@@ -154,19 +131,13 @@
               {% endif %}
             </div>
           </td>
-
-          <!-- Actions -->
           {% if session.role == 'admin' %}
           <td>
             <div style="display:flex;gap:6px">
-              <a href="{{ url_for('edit_student', student_id=s[0]) }}" class="btn-edit">
-                ✏️ Edit
-              </a>
+              <a href="{{ url_for('edit_student', student_id=s[0]) }}" class="btn-edit">✏️ Edit</a>
               <a href="{{ url_for('delete_student', student_id=s[0]) }}"
                  onclick="return confirmDelete('{{ s[1] }}')"
-                 class="btn-danger">
-                🗑️
-              </a>
+                 class="btn-danger">🗑️</a>
             </div>
           </td>
           {% endif %}
@@ -190,43 +161,91 @@
     </table>
   </div>
 
-  <!-- Results info -->
-  <div style="padding:12px 0 0;border-top:1px solid var(--border);margin-top:8px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:12.5px;color:var(--muted)">Showing <strong id="showing">{{ students|length }}</strong> of <strong>{{ students|length }}</strong> students</span>
-    <span style="font-size:12px;color:var(--muted)">Use filters above to narrow results</span>
+  <!-- Footer -->
+  <div style="padding:12px 0 0;border-top:1px solid var(--border);margin-top:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+    <span style="font-size:12.5px;color:var(--muted)">
+      Showing <strong id="showing">{{ students|length }}</strong> students
+      {% if total is defined and total > 20 %}
+      · Page {{ page }} of {{ total_pages }}
+      {% endif %}
+    </span>
+    <span style="font-size:12px;color:var(--muted)">Use filters to narrow results</span>
   </div>
 </div>
+
+<!-- Pagination -->
+{% if total_pages is defined and total_pages > 1 %}
+<div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:20px;flex-wrap:wrap">
+
+  <!-- Prev -->
+  {% if page > 1 %}
+  <a href="?page={{ page - 1 }}" class="btn-outline" style="padding:8px 16px;font-size:13px">
+    ← Prev
+  </a>
+  {% else %}
+  <span style="padding:8px 16px;border:2px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);background:var(--bg)">← Prev</span>
+  {% endif %}
+
+  <!-- Page Numbers -->
+  {% for p in range(1, total_pages + 1) %}
+    {% if p == page %}
+    <span style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;box-shadow:0 4px 12px rgba(99,102,241,0.3)">
+      {{ p }}
+    </span>
+    {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+    <a href="?page={{ p }}" style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;text-decoration:none;border:2px solid var(--border);color:var(--muted);background:var(--card);transition:all 0.2s"
+      onmouseover="this.style.borderColor='#6366f1';this.style.color='#6366f1'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      {{ p }}
+    </a>
+    {% elif p == page - 3 or p == page + 3 %}
+    <span style="color:var(--muted);font-size:13px;padding:0 4px">...</span>
+    {% endif %}
+  {% endfor %}
+
+  <!-- Next -->
+  {% if page < total_pages %}
+  <a href="?page={{ page + 1 }}" class="btn-outline" style="padding:8px 16px;font-size:13px">
+    Next →
+  </a>
+  {% else %}
+  <span style="padding:8px 16px;border:2px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);background:var(--bg)">Next →</span>
+  {% endif %}
+
+</div>
+
+<!-- Page info -->
+<div style="text-align:center;font-size:12px;color:var(--muted);margin-top:10px">
+  Showing {{ ((page-1)*20)+1 }}–{{ [page*20, total]|min }} of {{ total }} students
+</div>
+{% endif %}
 
 <script>
 function filterTable() {
   const search = document.getElementById('searchInput').value.toLowerCase();
   const branch = document.getElementById('branchFilter').value.toLowerCase();
-  const cgpa = document.getElementById('cgpaFilter').value;
-  const rows = document.querySelectorAll('#studentTable tr');
+  const cgpa   = document.getElementById('cgpaFilter').value;
+  const rows   = document.querySelectorAll('#studentTable tr');
   let count = 0;
   rows.forEach(row => {
     if (row.cells.length < 3) return;
-    const text = row.innerText.toLowerCase();
+    const text      = row.innerText.toLowerCase();
     const rowBranch = row.cells[3] ? row.cells[3].innerText.toLowerCase() : '';
-    const rowCgpa = row.cells[4] ? parseFloat(row.cells[4].innerText) : 0;
-    const matchSearch = text.includes(search);
-    const matchBranch = branch === '' || rowBranch.includes(branch);
-    const matchCgpa = cgpa === '' || rowCgpa >= parseFloat(cgpa);
-    if (matchSearch && matchBranch && matchCgpa) {
-      row.style.display = '';
-      count++;
-    } else {
-      row.style.display = 'none';
-    }
+    const rowCgpa   = row.cells[4] ? parseFloat(row.cells[4].innerText) : 0;
+    const match = text.includes(search) &&
+                  (branch === '' || rowBranch.includes(branch)) &&
+                  (cgpa   === '' || rowCgpa >= parseFloat(cgpa));
+    row.style.display = match ? '' : 'none';
+    if (match) count++;
   });
-  document.getElementById('count').innerText = count;
+  document.getElementById('count').innerText   = count;
   document.getElementById('showing').innerText = count;
 }
 
 function clearFilters() {
-  document.getElementById('searchInput').value = '';
+  document.getElementById('searchInput').value  = '';
   document.getElementById('branchFilter').value = '';
-  document.getElementById('cgpaFilter').value = '';
+  document.getElementById('cgpaFilter').value   = '';
   filterTable();
 }
 
