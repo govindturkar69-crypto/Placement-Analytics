@@ -2,88 +2,262 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
+
+<!-- Page Header -->
 <div class="page-header">
-  <h1>👤 My Profile</h1>
-  <p>Your personal information and placement status</p>
-</div>
-
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
-
-  <!-- Profile Card -->
-  <div class="card">
-    <div style="text-align:center;padding:20px 0">
-      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#10b981);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:white;margin:0 auto 16px">
-        {{ student[1][0] }}
-      </div>
-      <h2 style="font-size:20px;font-weight:700;margin-bottom:4px">{{ student[1] }}</h2>
-      <p style="color:#64748b;font-size:14px">{{ student[3] }} Student</p>
-    </div>
-
-    <div style="border-top:1px solid #e2e8f0;padding-top:20px">
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9">
-        <span style="color:#64748b;font-size:14px">📧 Email</span>
-        <span style="font-size:14px;font-weight:500">{{ student[2] }}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9">
-        <span style="color:#64748b;font-size:14px">🎓 Branch</span>
-        <span style="font-size:14px;font-weight:500">{{ student[3] }}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f1f5f9">
-        <span style="color:#64748b;font-size:14px">📊 CGPA</span>
-        <span style="font-size:14px;font-weight:700;color:
-          {% if student[4] >= 8.5 %}#10b981
-          {% elif student[4] >= 7.0 %}#f59e0b
-          {% else %}#ef4444{% endif %}">
-          {{ student[4] }}
-        </span>
-      </div>
-      <div style="padding:10px 0">
-        <span style="color:#64748b;font-size:14px">💻 Skills</span>
-        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
-          {% for skill in student[5].split(',') %}
-          <span style="background:#eff6ff;color:#2563eb;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
-            {{ skill.strip() }}
-          </span>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Placement Status -->
-  <div class="card">
-    <div class="card-title">✅ My Placement Status</div>
-    {% if my_placements %}
-      {% for p in my_placements %}
-      <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid #10b981">
-        <div style="font-size:16px;font-weight:700;margin-bottom:4px">🏢 {{ p[0] }}</div>
-        <div style="font-size:13px;color:#64748b">
-          💰 {{ p[1] }} LPA &nbsp;|&nbsp; 📅 {{ p[2] }} &nbsp;|&nbsp;
-          <span style="color:#059669;font-weight:600">{{ p[3] }}</span>
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <div style="text-align:center;padding:40px;color:#94a3b8">
-        <div style="font-size:48px;margin-bottom:12px">⏳</div>
-        <div style="font-size:16px;font-weight:600">Not placed yet</div>
-        <div style="font-size:13px;margin-top:4px">Keep improving your skills!</div>
-      </div>
-    {% endif %}
-  </div>
-</div>
-
-<!-- ML Predictor Quick Link -->
-<div class="card" style="max-width:900px;margin-top:0;background:linear-gradient(135deg,#2563eb,#10b981);border:none">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+  <div class="page-header-row">
     <div>
-      <div style="font-size:16px;font-weight:700;color:white">🤖 Check Your Placement Chances</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-top:4px">Use our ML Predictor to estimate your placement probability</div>
+      <h1 style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px">👤</span> My Profile
+      </h1>
+      <p>Your personal information and placement status</p>
     </div>
-    <a href="{{ url_for('predict') }}"
-       style="background:white;color:#2563eb;padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">
-      Try Predictor →
+    <a href="{{ url_for('predict') }}" class="btn-add" style="background:linear-gradient(135deg,#6366f1,#10b981)">
+      🤖 ML Predictor
     </a>
   </div>
 </div>
+
+<!-- Profile Grid -->
+<div style="display:grid;grid-template-columns:360px 1fr;gap:24px;max-width:1000px">
+
+  <!-- Left — Profile Card -->
+  <div>
+
+    <!-- Avatar Card -->
+    <div class="card" style="text-align:center;padding:36px 24px;margin-bottom:20px;position:relative;overflow:hidden">
+      <!-- Background blob -->
+      <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(16,185,129,0.08));border-radius:50%;pointer-events:none"></div>
+
+      <!-- Avatar -->
+      <div style="position:relative;display:inline-block;margin-bottom:16px">
+        <div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#10b981);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;color:white;margin:0 auto;box-shadow:0 8px 24px rgba(99,102,241,0.3);position:relative;z-index:1">
+          {{ student[1][0].upper() if student[1] else '?' }}
+        </div>
+        <!-- Online dot -->
+        <div style="position:absolute;bottom:4px;right:4px;width:16px;height:16px;background:#10b981;border-radius:50%;border:3px solid var(--card);z-index:2;animation:pulse 2s infinite"></div>
+      </div>
+
+      <h2 style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-0.3px">{{ student[1] }}</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin-bottom:16px">{{ student[3] }} Student</p>
+
+      <!-- CGPA Badge -->
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;
+        background:{% if student[4] >= 8.5 %}rgba(16,185,129,0.1){% elif student[4] >= 7.0 %}rgba(245,158,11,0.1){% else %}rgba(239,68,68,0.1){% endif %};
+        border:1px solid {% if student[4] >= 8.5 %}rgba(16,185,129,0.3){% elif student[4] >= 7.0 %}rgba(245,158,11,0.3){% else %}rgba(239,68,68,0.3){% endif %}">
+        <span style="font-size:13px">📊</span>
+        <span style="font-size:15px;font-weight:800;color:{% if student[4] >= 8.5 %}#10b981{% elif student[4] >= 7.0 %}#f59e0b{% else %}#ef4444{% endif %}">
+          {{ student[4] }} CGPA
+        </span>
+      </div>
+
+      <!-- CGPA Progress Ring -->
+      <div style="margin-top:20px;position:relative;width:100px;height:100px;margin-left:auto;margin-right:auto">
+        <svg width="100" height="100" style="transform:rotate(-90deg)">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>
+          <circle cx="50" cy="50" r="40" fill="none"
+            stroke="{% if student[4] >= 8.5 %}#10b981{% elif student[4] >= 7.0 %}#f59e0b{% else %}#ef4444{% endif %}"
+            stroke-width="8"
+            stroke-linecap="round"
+            stroke-dasharray="{{ (student[4] / 10 * 251.2)|round }} 251.2"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <div style="font-size:18px;font-weight:800;color:var(--text)">{{ student[4] }}</div>
+          <div style="font-size:10px;color:var(--muted);font-weight:500">/10</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="card">
+      <div class="card-title">
+        <span class="card-title-dot"></span>
+        📋 Personal Info
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px">📧 Email</span>
+          <span style="font-size:13px;font-weight:500;color:var(--text-2)">{{ student[2] }}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px">🎓 Branch</span>
+          <span style="background:#eff6ff;color:#4f46e5;border:1px solid #c7d2fe;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+            {{ student[3] }}
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--muted);font-size:13px">📊 CGPA</span>
+          <span style="font-size:14px;font-weight:800;color:{% if student[4] >= 8.5 %}#10b981{% elif student[4] >= 7.0 %}#f59e0b{% else %}#ef4444{% endif %}">
+            {{ student[4] }} / 10
+          </span>
+        </div>
+        <div style="padding:12px 0">
+          <span style="color:var(--muted);font-size:13px;display:block;margin-bottom:10px">💻 Skills</span>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            {% if student[5] %}
+              {% for skill in student[5].split(',') %}
+              <span style="background:rgba(99,102,241,0.08);color:#6366f1;border:1px solid rgba(99,102,241,0.2);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;transition:all 0.2s;cursor:default"
+                onmouseover="this.style.background='#6366f1';this.style.color='white'"
+                onmouseout="this.style.background='rgba(99,102,241,0.08)';this.style.color='#6366f1'">
+                {{ skill.strip() }}
+              </span>
+              {% endfor %}
+            {% else %}
+            <span style="color:var(--muted);font-size:13px">No skills added yet</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right — Placement + Actions -->
+  <div>
+
+    <!-- Placement Status -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">
+        <span class="card-title-dot" style="background:#10b981"></span>
+        ✅ My Placement Status
+      </div>
+
+      {% if my_placements %}
+        {% for p in my_placements %}
+        <div style="border-radius:14px;padding:20px;margin-bottom:12px;
+          background:linear-gradient(135deg,rgba(16,185,129,0.05),rgba(99,102,241,0.05));
+          border:1px solid rgba(16,185,129,0.2);
+          transition:all 0.25s;position:relative;overflow:hidden"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.15)'"
+          onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+
+          <!-- Top border accent -->
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#10b981,#6366f1)"></div>
+
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:18px;color:white;font-weight:800;flex-shrink:0">
+                {{ p[0][0].upper() if p[0] else '?' }}
+              </div>
+              <div>
+                <div style="font-size:16px;font-weight:700;color:var(--text)">{{ p[0] }}</div>
+                <div style="font-size:12px;color:var(--muted)">Year {{ p[2] }}</div>
+              </div>
+            </div>
+            <span style="background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700">
+              ✅ {{ p[3] }}
+            </span>
+          </div>
+
+          <div style="display:flex;gap:20px">
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:800;color:#f59e0b">{{ p[1] }}</div>
+              <div style="font-size:11px;color:var(--muted);font-weight:500">LPA</div>
+            </div>
+            <div style="width:1px;background:var(--border)"></div>
+            <div style="text-align:center">
+              <div style="font-size:20px;font-weight:800;color:#6366f1">{{ p[2] }}</div>
+              <div style="font-size:11px;color:var(--muted);font-weight:500">Year</div>
+            </div>
+            <div style="width:1px;background:var(--border)"></div>
+            <div style="text-align:center">
+              <div style="font-size:18px">🎉</div>
+              <div style="font-size:11px;color:var(--muted);font-weight:500">Congrats!</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <div style="text-align:center;padding:48px 20px">
+          <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(16,185,129,0.08));display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 16px;animation:float 3s ease-in-out infinite">
+            ⏳
+          </div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px">Not placed yet</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:20px;max-width:240px;margin-left:auto;margin-right:auto">
+            Keep improving your skills and CGPA — you're on the right track!
+          </div>
+          <a href="{{ url_for('predict') }}" class="btn-add" style="display:inline-flex">
+            🤖 Check Your Chances
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Readiness Score -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">
+        <span class="card-title-dot" style="background:#f59e0b"></span>
+        🎯 Profile Readiness
+      </div>
+      {% set skill_count = student[5].split(',')|length if student[5] else 0 %}
+      {% set readiness = ((student[4] / 10 * 40) + (skill_count / 10 * 40) + (20 if my_placements else 0))|round|int %}
+      {% set readiness = [readiness, 100]|min %}
+
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;color:var(--muted)">Overall Readiness</span>
+          <span style="font-size:15px;font-weight:800;color:{% if readiness >= 70 %}#10b981{% elif readiness >= 50 %}#f59e0b{% else %}#ef4444{% endif %}">
+            {{ readiness }}%
+          </span>
+        </div>
+        <div style="background:var(--border);border-radius:50px;height:10px;overflow:hidden">
+          <div style="height:100%;width:{{ readiness }}%;background:{% if readiness >= 70 %}linear-gradient(90deg,#10b981,#34d399){% elif readiness >= 50 %}linear-gradient(90deg,#f59e0b,#fbbf24){% else %}linear-gradient(90deg,#ef4444,#f87171){% endif %};border-radius:50px;transition:width 1.5s ease"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+          <span style="color:var(--muted)">📊 CGPA Score</span>
+          <span style="font-weight:600;color:{% if student[4] >= 8.5 %}#10b981{% elif student[4] >= 7 %}#f59e0b{% else %}#ef4444{% endif %}">
+            {% if student[4] >= 8.5 %}Excellent{% elif student[4] >= 7 %}Good{% else %}Needs Work{% endif %}
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+          <span style="color:var(--muted)">💻 Skills ({{ skill_count }})</span>
+          <span style="font-weight:600;color:{% if skill_count >= 5 %}#10b981{% elif skill_count >= 3 %}#f59e0b{% else %}#ef4444{% endif %}">
+            {% if skill_count >= 5 %}Strong{% elif skill_count >= 3 %}Moderate{% else %}Add More{% endif %}
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+          <span style="color:var(--muted)">✅ Placement</span>
+          <span style="font-weight:600;color:{% if my_placements %}#10b981{% else %}#f59e0b{% endif %}">
+            {% if my_placements %}Placed!{% else %}Pending{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ML Predictor Banner -->
+    <div style="border-radius:16px;padding:24px;background:linear-gradient(135deg,#6366f1,#4f46e5,#10b981);position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;background:rgba(255,255,255,0.06);border-radius:50%"></div>
+      <div style="position:absolute;bottom:-30px;left:-10px;width:100px;height:100px;background:rgba(255,255,255,0.04);border-radius:50%"></div>
+      <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:white;margin-bottom:4px">🤖 Check Placement Chances</div>
+          <div style="font-size:12.5px;color:rgba(255,255,255,0.75)">Our AI analyzes 6 factors to predict your probability</div>
+        </div>
+        <a href="{{ url_for('predict') }}"
+           style="background:white;color:#6366f1;padding:10px 20px;border-radius:10px;text-decoration:none;font-weight:700;font-size:13.5px;white-space:nowrap;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.15)"
+           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,0.2)'"
+           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'">
+          Try Predictor →
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+}
+@keyframes float {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+</style>
+
 {% endblock %}
