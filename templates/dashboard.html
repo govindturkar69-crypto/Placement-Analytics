@@ -2,9 +2,23 @@
 {% block title %}Dashboard – Placement Analytics{% endblock %}
 
 {% block content %}
+
+<!-- Page Header -->
 <div class="page-header">
-  <h1>📊 Dashboard</h1>
-  <p>Welcome back, {{ user_name }}! Here's your placement overview.</p>
+  <div class="page-header-row">
+    <div>
+      <h1 style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px">📊</span> Dashboard
+      </h1>
+      <p>Welcome back, <strong style="color:var(--primary)">{{ user_name }}</strong>! Here's your placement overview.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">
+        <span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
+        Live Data
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Stat Cards -->
@@ -13,45 +27,126 @@
     <div class="stat-icon">👨‍🎓</div>
     <div class="stat-value">{{ total_students }}</div>
     <div class="stat-label">Total Students</div>
+    <div class="stat-trend up">↑ Registered</div>
   </div>
   <div class="stat-card green">
     <div class="stat-icon">✅</div>
     <div class="stat-value">{{ total_placements }}</div>
     <div class="stat-label">Students Placed</div>
+    <div class="stat-trend up">↑ Placed</div>
   </div>
   <div class="stat-card purple">
     <div class="stat-icon">🏢</div>
     <div class="stat-value">{{ total_companies }}</div>
     <div class="stat-label">Companies Visited</div>
+    <div class="stat-trend up">↑ Recruiting</div>
   </div>
   <div class="stat-card orange">
     <div class="stat-icon">💰</div>
-    <div class="stat-value">{{ avg_package }} LPA</div>
-    <div class="stat-label">Avg Package</div>
+    <div class="stat-value">{{ avg_package }}</div>
+    <div class="stat-label">Avg Package (LPA)</div>
+    <div class="stat-trend up">↑ Average</div>
   </div>
   <div class="stat-card red">
     <div class="stat-icon">🏆</div>
-    <div class="stat-value">{{ max_package }} LPA</div>
-    <div class="stat-label">Highest Package</div>
+    <div class="stat-value">{{ max_package }}</div>
+    <div class="stat-label">Highest Package (LPA)</div>
+    <div class="stat-trend up">↑ Record</div>
   </div>
 </div>
 
-<!-- Notifications -->
-{% if notifications %}
-<div class="card" style="margin-bottom:24px">
-  <div class="card-title">🔔 Notifications</div>
-  {% for n in notifications %}
-  <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;margin-bottom:8px;background:{% if n.type=='success' %}#ecfdf5{% else %}#eff6ff{% endif %};border-left:4px solid {% if n.type=='success' %}#10b981{% else %}#2563eb{% endif %}">
-    <span style="font-size:20px">{{ n.icon }}</span>
-    <span style="font-size:14px;color:#1e293b">{{ n.message }}</span>
+<!-- Placement Rate Bar -->
+{% if total_students > 0 %}
+<div class="card" style="margin-bottom:24px;padding:20px 24px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:var(--text)">🎯 Overall Placement Rate</div>
+    <div style="font-size:22px;font-weight:800;color:#10b981">
+      {{ ((total_placements / total_students) * 100) | round(1) }}%
+    </div>
   </div>
-  {% endfor %}
+  <div style="background:var(--border);border-radius:50px;height:10px;overflow:hidden">
+    <div style="height:100%;width:{{ [(total_placements / total_students * 100), 100] | min }}%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:50px;transition:width 1.5s ease" id="placementBar"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--muted)">
+    <span>{{ total_placements }} placed</span>
+    <span>{{ total_students }} total</span>
+  </div>
 </div>
 {% endif %}
 
+<!-- Notifications + Quick Actions grid -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+
+  <!-- Notifications -->
+  {% if notifications %}
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title">
+      <span class="card-title-dot" style="background:#f59e0b"></span>
+      🔔 Notifications
+    </div>
+    {% for n in notifications %}
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:12px;margin-bottom:8px;
+      background:{% if n.type=='success' %}rgba(16,185,129,0.07){% else %}rgba(99,102,241,0.07){% endif %};
+      border:1px solid {% if n.type=='success' %}rgba(16,185,129,0.2){% else %}rgba(99,102,241,0.15){% endif %};
+      transition:all 0.2s;cursor:default"
+      onmouseover="this.style.transform='translateX(4px)'"
+      onmouseout="this.style.transform='translateX(0)'">
+      <span style="font-size:18px;flex-shrink:0;margin-top:1px">{{ n.icon }}</span>
+      <span style="font-size:13px;color:var(--text-2);line-height:1.5">{{ n.message }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="margin-bottom:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--muted);min-height:140px">
+    <span style="font-size:32px">🔕</span>
+    <span style="font-size:13px">No notifications</span>
+  </div>
+  {% endif %}
+
+  <!-- Quick Stats Mini -->
+  <div class="card" style="margin-bottom:0">
+    <div class="card-title">
+      <span class="card-title-dot" style="background:#6366f1"></span>
+      ⚡ Quick Stats
+    </div>
+    {% if total_students > 0 %}
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--muted)">Placement Rate</span>
+        <span style="font-size:13px;font-weight:700;color:#10b981">{{ ((total_placements / total_students) * 100) | round(1) }}%</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--muted)">Avg Package</span>
+        <span style="font-size:13px;font-weight:700;color:#f59e0b">{{ avg_package }} LPA</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--muted)">Highest Package</span>
+        <span style="font-size:13px;font-weight:700;color:#ef4444">{{ max_package }} LPA</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--muted)">Companies</span>
+        <span style="font-size:13px;font-weight:700;color:#6366f1">{{ total_companies }}</span>
+      </div>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">No data yet</div>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Recent Placements -->
 <div class="card">
-  <div class="card-title">🕐 Recent Placements</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+    <div class="card-title" style="margin-bottom:0">
+      <span class="card-title-dot"></span>
+      🕐 Recent Placements
+    </div>
+    {% if session.role == 'admin' %}
+    <a href="{{ url_for('placements') }}" style="font-size:12px;color:var(--primary);text-decoration:none;font-weight:600">
+      View all →
+    </a>
+    {% endif %}
+  </div>
   <div class="table-wrapper">
     <table>
       <thead>
@@ -65,42 +160,110 @@
       </thead>
       <tbody>
         {% for row in recent %}
-        <tr>
-          <td><strong>{{ row[0] }}</strong></td>
-          <td>{{ row[1] }}</td>
-          <td>💰 {{ row[2] }} LPA</td>
-          <td>{{ row[3] }}</td>
+        <tr style="animation:fadeUp 0.3s ease {{ loop.index * 0.05 }}s both">
+          <td>
+            <div style="display:flex;align-items:center;gap:9px">
+              <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#10b981);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;flex-shrink:0">
+                {{ row[0][0].upper() }}
+              </div>
+              <strong style="font-size:13.5px">{{ row[0] }}</strong>
+            </div>
+          </td>
+          <td style="font-size:13.5px">{{ row[1] }}</td>
+          <td>
+            <span style="font-weight:700;color:#f59e0b;font-size:13.5px">💰 {{ row[2] }} LPA</span>
+          </td>
+          <td style="font-size:13px;color:var(--muted)">{{ row[3] }}</td>
           <td><span class="badge badge-success">{{ row[4] }}</span></td>
         </tr>
         {% else %}
-        <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:32px">No placement records yet.</td></tr>
+        <tr>
+          <td colspan="5" style="text-align:center;padding:40px">
+            <div style="font-size:36px;margin-bottom:10px">📋</div>
+            <div style="color:var(--muted);font-size:14px">No placement records yet.</div>
+            {% if session.role == 'admin' %}
+            <a href="{{ url_for('add_placement') }}" class="btn-add" style="margin-top:14px;display:inline-flex">➕ Record First Placement</a>
+            {% endif %}
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Quick Links -->
+<!-- Admin Quick Actions -->
 {% if session.role == 'admin' %}
-<div style="margin-bottom:20px">
-  <a href="{{ url_for('export_excel') }}"
-     class="btn-add"
-     style="background:linear-gradient(135deg,#10b981,#059669)">
-    📊 Export Excel
-  </a>
-  <a href="{{ url_for('download_report') }}" 
-     class="btn-add" 
-     style="background:linear-gradient(135deg,#dc2626,#991b1b)">
-    📄 Download PDF Report
-  </a>
+<div class="card">
+  <div class="card-title">
+    <span class="card-title-dot" style="background:#ef4444"></span>
+    ⚡ Quick Actions
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+
+    <a href="{{ url_for('add_student') }}" class="quick-action-btn" style="--qc:#6366f1">
+      <span style="font-size:24px">👨‍🎓</span>
+      <span>Add Student</span>
+    </a>
+
+    <a href="{{ url_for('add_company') }}" class="quick-action-btn" style="--qc:#10b981">
+      <span style="font-size:24px">🏢</span>
+      <span>Add Company</span>
+    </a>
+
+    <a href="{{ url_for('add_placement') }}" class="quick-action-btn" style="--qc:#8b5cf6">
+      <span style="font-size:24px">✅</span>
+      <span>Record Placement</span>
+    </a>
+
+    <a href="{{ url_for('analytics') }}" class="quick-action-btn" style="--qc:#f59e0b">
+      <span style="font-size:24px">📈</span>
+      <span>View Analytics</span>
+    </a>
+
+    <a href="{{ url_for('export_excel') }}" class="quick-action-btn" style="--qc:#10b981">
+      <span style="font-size:24px">📊</span>
+      <span>Export Excel</span>
+    </a>
+
+    <a href="{{ url_for('download_report') }}" class="quick-action-btn" style="--qc:#ef4444">
+      <span style="font-size:24px">📄</span>
+      <span>PDF Report</span>
+    </a>
+
+  </div>
 </div>
 {% endif %}
-{% if session.role == 'admin' %}
-<div style="display:flex;gap:12px;flex-wrap:wrap;">
-  <a href="{{ url_for('add_student') }}" class="btn-add">➕ Add Student</a>
-  <a href="{{ url_for('add_company') }}" class="btn-add" style="background:linear-gradient(135deg,#10b981,#059669)">➕ Add Company</a>
-  <a href="{{ url_for('add_placement') }}" class="btn-add" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">✅ Record Placement</a>
-  <a href="{{ url_for('analytics') }}" class="btn-add" style="background:linear-gradient(135deg,#f59e0b,#d97706)">📈 View Analytics</a>
-</div>
-{% endif %}
+
+<style>
+.quick-action-btn {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:20px 16px;
+  border-radius:14px;
+  background:rgba(0,0,0,0.02);
+  border:1.5px solid var(--border);
+  text-decoration:none;
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+  transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
+  text-align:center;
+}
+.quick-action-btn:hover {
+  background:color-mix(in srgb, var(--qc) 8%, transparent);
+  border-color:color-mix(in srgb, var(--qc) 40%, transparent);
+  color:var(--qc);
+  transform:translateY(-3px);
+  box-shadow:0 8px 20px color-mix(in srgb, var(--qc) 15%, transparent);
+}
+@keyframes pulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.4)}
+  50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}
+}
+</style>
+
 {% endblock %}
