@@ -4,376 +4,246 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login – Placement Analytics</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Inter', sans-serif;
       min-height: 100vh;
+      background: #050816;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
-      background: #0a0f1e;
     }
 
-    /* ── ANIMATED BACKGROUND ── */
-    .bg {
+    /* ── 3D CANVAS BACKGROUND ── */
+    #bg-canvas {
       position: fixed;
       inset: 0;
       z-index: 0;
-      overflow: hidden;
     }
 
-    /* Grid lines */
-    .bg-grid {
-      position: absolute;
+    /* ── FLOATING 3D CUBES ── */
+    .scene {
+      position: fixed;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px);
-      background-size: 50px 50px;
-      animation: gridMove 20s linear infinite;
+      z-index: 1;
+      perspective: 1000px;
+      pointer-events: none;
     }
-    @keyframes gridMove {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(50px); }
+    .cube {
+      position: absolute;
+      width: 40px; height: 40px;
+      transform-style: preserve-3d;
+      animation: cubeRotate linear infinite;
+    }
+    .cube-face {
+      position: absolute;
+      width: 40px; height: 40px;
+      border: 1px solid rgba(99,102,241,0.3);
+      background: rgba(99,102,241,0.04);
+      backdrop-filter: blur(2px);
+    }
+    .cube-face.front  { transform: translateZ(20px); }
+    .cube-face.back   { transform: rotateY(180deg) translateZ(20px); }
+    .cube-face.left   { transform: rotateY(-90deg) translateZ(20px); }
+    .cube-face.right  { transform: rotateY(90deg) translateZ(20px); }
+    .cube-face.top    { transform: rotateX(90deg) translateZ(20px); }
+    .cube-face.bottom { transform: rotateX(-90deg) translateZ(20px); }
+
+    @keyframes cubeRotate {
+      0%   { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+      100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
     }
 
-    /* Gradient orbs */
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      animation: orbFloat 12s ease-in-out infinite;
+    /* ── GRID FLOOR ── */
+    .grid-floor {
+      position: fixed;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%) rotateX(75deg);
+      width: 200vw;
+      height: 200vw;
+      background-image:
+        linear-gradient(rgba(99,102,241,0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.15) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 1;
+      animation: gridScroll 8s linear infinite;
     }
-    .orb-1 {
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(99,102,241,0.25), transparent 70%);
+    @keyframes gridScroll {
+      0%   { background-position: 0 0; }
+      100% { background-position: 0 60px; }
+    }
+
+    /* ── GLOW ORBS ── */
+    .glow {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 1;
+      animation: glowPulse 6s ease-in-out infinite;
+    }
+    .glow-1 {
+      width: 400px; height: 400px;
+      background: rgba(99,102,241,0.15);
       top: -100px; left: -100px;
       animation-delay: 0s;
     }
-    .orb-2 {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%);
-      bottom: -80px; right: -80px;
-      animation-delay: -4s;
-    }
-    .orb-3 {
+    .glow-2 {
       width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%);
-      top: 40%; left: 60%;
-      animation-delay: -8s;
+      background: rgba(16,185,129,0.1);
+      bottom: -50px; right: -50px;
+      animation-delay: -3s;
     }
-    .orb-4 {
-      width: 200px; height: 200px;
-      background: radial-gradient(circle, rgba(249,115,22,0.12), transparent 70%);
-      top: 20%; right: 20%;
-      animation-delay: -2s;
-    }
-    @keyframes orbFloat {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      25% { transform: translate(30px, -30px) scale(1.05); }
-      50% { transform: translate(-20px, 20px) scale(0.95); }
-      75% { transform: translate(20px, 10px) scale(1.02); }
+    @keyframes glowPulse {
+      0%,100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
     }
 
-    /* Floating particles */
-    .particles {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-    }
-    .particle {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.4);
-      animation: particleFloat linear infinite;
-    }
-    @keyframes particleFloat {
-      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
-    }
-
-    /* Shooting stars */
-    .star {
-      position: absolute;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-      animation: shoot linear infinite;
-    }
-    @keyframes shoot {
-      0% { transform: translateX(-100%) translateY(0); opacity: 1; }
-      100% { transform: translateX(200vw) translateY(100px); opacity: 0; }
-    }
-
-    /* ── LAYOUT ── */
-    .page {
+    /* ── LOGIN CARD ── */
+    .login-wrap {
       position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-    }
-
-    /* ── LEFT PANEL ── */
-    .left-panel {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 60px;
-      position: relative;
-    }
-
-    .left-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(99,102,241,0.15);
-      border: 1px solid rgba(99,102,241,0.3);
-      border-radius: 50px;
-      padding: 6px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #818cf8;
-      letter-spacing: 0.5px;
-      margin-bottom: 32px;
-      width: fit-content;
-      animation: fadeInLeft 0.6s ease both;
-    }
-    .left-badge-dot {
-      width: 6px; height: 6px;
-      background: #10b981;
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
-      50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
-    }
-
-    .left-title {
-      font-size: 52px;
-      font-weight: 800;
-      color: white;
-      line-height: 1.1;
-      letter-spacing: -2px;
-      margin-bottom: 20px;
-      animation: fadeInLeft 0.6s ease 0.1s both;
-    }
-    .left-title .gradient-text {
-      background: linear-gradient(135deg, #6366f1, #10b981, #f59e0b);
-      background-size: 200% 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: gradientShift 4s ease infinite;
-    }
-    @keyframes gradientShift {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-
-    .left-desc {
-      font-size: 16px;
-      color: rgba(255,255,255,0.5);
-      line-height: 1.7;
+      z-index: 10;
+      width: 100%;
       max-width: 400px;
-      margin-bottom: 48px;
-      animation: fadeInLeft 0.6s ease 0.2s both;
-    }
-
-    /* Stats row */
-    .stats-row {
-      display: flex;
-      gap: 32px;
-      animation: fadeInLeft 0.6s ease 0.3s both;
-    }
-    .stat-item {}
-    .stat-num {
-      font-size: 28px;
-      font-weight: 800;
-      color: white;
-      letter-spacing: -1px;
-    }
-    .stat-label {
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-      font-weight: 500;
-      margin-top: 2px;
-    }
-    .stat-divider {
-      width: 1px;
-      background: rgba(255,255,255,0.1);
-      align-self: stretch;
-    }
-
-    /* Feature pills */
-    .features {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 40px;
-      animation: fadeInLeft 0.6s ease 0.4s both;
-    }
-    .feature-pill {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 50px;
-      padding: 6px 14px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.6);
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .feature-pill:hover {
-      background: rgba(255,255,255,0.1);
-      color: white;
-      border-color: rgba(255,255,255,0.15);
-    }
-
-    @keyframes fadeInLeft {
-      from { opacity: 0; transform: translateX(-24px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-
-    /* ── RIGHT PANEL (Login Card) ── */
-    .right-panel {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
+      padding: 20px;
     }
 
     .login-card {
-      width: 100%;
-      max-width: 420px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 28px;
-      padding: 44px 40px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 32px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-      animation: cardReveal 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 40px 36px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05) inset,
+        0 32px 80px rgba(0,0,0,0.5),
+        0 0 80px rgba(99,102,241,0.08);
+      animation: cardFloat 6s ease-in-out infinite, cardIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+      transform-style: preserve-3d;
     }
-    @keyframes cardReveal {
-      from { opacity: 0; transform: translateY(30px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    @keyframes cardFloat {
+      0%,100% { transform: translateY(0px) rotateX(0deg); }
+      50% { transform: translateY(-8px) rotateX(1deg); }
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(40px) scale(0.9); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* Card header */
-    .card-logo {
-      width: 56px; height: 56px;
-      background: linear-gradient(135deg, #6366f1, #10b981);
-      border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 26px;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 24px rgba(99,102,241,0.4);
-      animation: logoBounce 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
-      position: relative;
-      overflow: hidden;
-    }
-    .card-logo::after {
+    /* Holographic shimmer */
+    .login-card::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
-    }
-    @keyframes logoBounce {
-      from { opacity: 0; transform: scale(0.5) rotate(-10deg); }
-      to { opacity: 1; transform: scale(1) rotate(0deg); }
-    }
-
-    .card-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: white;
-      letter-spacing: -0.5px;
-      margin-bottom: 6px;
-      animation: fadeInUp 0.5s ease 0.4s both;
-    }
-    .card-subtitle {
-      font-size: 13.5px;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 32px;
-      animation: fadeInUp 0.5s ease 0.5s both;
+      border-radius: 24px;
+      background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.05) 0%,
+        transparent 40%,
+        transparent 60%,
+        rgba(99,102,241,0.05) 100%
+      );
+      pointer-events: none;
     }
 
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Alert */
-    .alert {
+    /* ── LOGO ── */
+    .logo {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 12px 14px;
+      gap: 12px;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, #6366f1, #10b981);
       border-radius: 12px;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 20px;
-      animation: shake 0.4s ease;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 8px 20px rgba(99,102,241,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;
+      position: relative;
+      overflow: hidden;
     }
-    .alert-danger {
-      background: rgba(239,68,68,0.12);
-      border: 1px solid rgba(239,68,68,0.25);
-      color: #fca5a5;
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: logoShine 3s ease infinite;
     }
-    .alert-success {
-      background: rgba(16,185,129,0.12);
-      border: 1px solid rgba(16,185,129,0.25);
-      color: #6ee7b7;
+    @keyframes logoShine {
+      0% { left: -100%; }
+      50%,100% { left: 100%; }
     }
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-6px); }
-      40% { transform: translateX(6px); }
-      60% { transform: translateX(-4px); }
-      80% { transform: translateX(4px); }
+    .logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.3px;
+    }
+    .logo-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      font-weight: 400;
+      margin-top: 1px;
     }
 
-    /* Form */
-    .form-group {
-      margin-bottom: 18px;
-      animation: fadeInUp 0.5s ease both;
+    /* ── HEADING ── */
+    .heading {
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s ease 0.3s both;
     }
-    .form-group:nth-child(1) { animation-delay: 0.55s; }
-    .form-group:nth-child(2) { animation-delay: 0.6s; }
+    .heading h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .heading p {
+      font-size: 13.5px;
+      color: rgba(255,255,255,0.35);
+      font-weight: 400;
+    }
+
+    /* ── FORM ── */
+    .form-group {
+      margin-bottom: 16px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .form-group:nth-child(1) { animation-delay: 0.4s; }
+    .form-group:nth-child(2) { animation-delay: 0.5s; }
 
     .form-label {
       display: block;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
-      color: rgba(255,255,255,0.6);
+      color: rgba(255,255,255,0.45);
       margin-bottom: 8px;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
-
-    .input-wrap {
-      position: relative;
-    }
+    .input-wrap { position: relative; }
     .input-icon {
       position: absolute;
-      left: 14px;
-      top: 50%;
+      left: 14px; top: 50%;
       transform: translateY(-50%);
-      font-size: 16px;
-      pointer-events: none;
-      opacity: 0.5;
+      font-size: 15px;
+      opacity: 0.4;
       transition: opacity 0.2s;
+      pointer-events: none;
     }
     .form-control {
       width: 100%;
       padding: 13px 14px 13px 42px;
-      background: rgba(255,255,255,0.06);
-      border: 1.5px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 12px;
       font-size: 14px;
       color: white;
@@ -381,32 +251,28 @@
       font-family: inherit;
       transition: all 0.25s;
     }
-    .form-control::placeholder { color: rgba(255,255,255,0.25); }
+    .form-control::placeholder { color: rgba(255,255,255,0.2); }
     .form-control:focus {
-      border-color: #6366f1;
-      background: rgba(99,102,241,0.08);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+      border-color: rgba(99,102,241,0.6);
+      background: rgba(99,102,241,0.06);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 0 20px rgba(99,102,241,0.08);
     }
-    .form-control:focus + .focus-line { width: 100%; }
-    .input-wrap:focus-within .input-icon { opacity: 0.9; }
+    .form-control:focus + .input-icon,
+    .input-wrap:focus-within .input-icon { opacity: 0.8; }
 
-    /* Eye toggle */
+    /* Eye btn */
     .eye-btn {
       position: absolute;
-      right: 12px;
-      top: 50%;
+      right: 12px; top: 50%;
       transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.4);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
-      transition: color 0.2s;
+      background: none; border: none;
+      color: rgba(255,255,255,0.3);
+      cursor: pointer; font-size: 15px;
+      padding: 4px; transition: color 0.2s;
     }
-    .eye-btn:hover { color: rgba(255,255,255,0.8); }
+    .eye-btn:hover { color: rgba(255,255,255,0.7); }
 
-    /* Submit button */
+    /* ── BUTTON ── */
     .btn-submit {
       width: 100%;
       padding: 14px;
@@ -414,380 +280,313 @@
       color: white;
       border: none;
       border-radius: 12px;
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
       font-family: inherit;
-      transition: all 0.25s;
+      margin-top: 8px;
       position: relative;
       overflow: hidden;
-      margin-top: 8px;
+      transition: all 0.25s;
       box-shadow: 0 8px 24px rgba(99,102,241,0.35);
-      animation: fadeInUp 0.5s ease 0.65s both;
+      animation: fadeUp 0.6s ease 0.6s both;
+      letter-spacing: 0.2px;
     }
     .btn-submit::before {
       content: '';
       position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
+      top: 0; left: -100%; width: 100%; height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
       transition: left 0.5s;
     }
     .btn-submit:hover::before { left: 100%; }
     .btn-submit:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(99,102,241,0.5);
+      box-shadow: 0 14px 32px rgba(99,102,241,0.5);
     }
     .btn-submit:active { transform: translateY(0); }
+    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
 
-    /* Loading state */
-    .btn-submit.loading {
-      pointer-events: none;
-      opacity: 0.8;
-    }
-    .btn-submit .spinner {
-      display: none;
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    .btn-submit.loading .btn-text { display: none; }
-    .btn-submit.loading .spinner { display: inline-block; }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Links */
-    .card-links {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-      animation: fadeInUp 0.5s ease 0.7s both;
-    }
-    .card-link {
+    /* ── ALERT ── */
+    .alert {
+      padding: 11px 14px;
+      border-radius: 10px;
       font-size: 13px;
-      color: rgba(255,255,255,0.4);
+      font-weight: 500;
+      margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .alert-danger {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.2);
+      color: #fca5a5;
+    }
+    .alert-success {
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.2);
+      color: #6ee7b7;
+    }
+
+    /* ── FOOTER ── */
+    .card-footer {
+      margin-top: 20px;
+      text-align: center;
+      animation: fadeUp 0.6s ease 0.7s both;
+    }
+    .card-footer a {
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.3);
       text-decoration: none;
       transition: color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 5px;
     }
-    .card-link:hover { color: #818cf8; }
+    .card-footer a:hover { color: #818cf8; }
 
-    /* Role selector */
-    .role-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 24px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 4px;
-      animation: fadeInUp 0.5s ease 0.5s both;
-    }
-    .role-tab {
-      flex: 1;
-      padding: 9px;
-      border-radius: 9px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.4);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .role-tab.active {
-      background: rgba(99,102,241,0.2);
-      color: white;
-      border: 1px solid rgba(99,102,241,0.3);
-    }
-    .role-tab:hover:not(.active) { color: rgba(255,255,255,0.7); }
-
-    /* Divider */
+    /* ── DIVIDER ── */
     .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0;
-      animation: fadeInUp 0.5s ease 0.6s both;
+      display: flex; align-items: center; gap: 12px;
+      margin: 18px 0;
+      animation: fadeUp 0.6s ease 0.65s both;
     }
-    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
-    .divider-text { font-size: 12px; color: rgba(255,255,255,0.25); font-weight: 500; }
+    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .divider-text { font-size: 11px; color: rgba(255,255,255,0.2); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* Mobile */
-    @media (max-width: 768px) {
-      .page { grid-template-columns: 1fr; }
-      .left-panel { display: none; }
-      .right-panel { padding: 20px; min-height: 100vh; }
-      .login-card { padding: 36px 28px; }
-      .left-title { font-size: 36px; }
+    @media (max-width: 480px) {
+      .login-card { padding: 32px 24px; }
     }
 
-    /* Typing cursor */
-    .cursor {
-      display: inline-block;
-      width: 2px;
-      height: 1em;
-      background: #6366f1;
-      margin-left: 2px;
-      animation: blink 1s step-end infinite;
-      vertical-align: middle;
-    }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
+    /* Tilt effect */
+    .login-card { cursor: default; }
   </style>
 </head>
 <body>
 
-<!-- Background -->
-<div class="bg">
-  <div class="bg-grid"></div>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-  <div class="orb orb-4"></div>
-  <div class="particles" id="particles"></div>
-</div>
+<!-- 3D Grid Floor -->
+<div class="grid-floor"></div>
 
-<!-- Page -->
-<div class="page">
+<!-- Glow Orbs -->
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
 
-  <!-- Left Panel -->
-  <div class="left-panel">
-    <div class="left-badge">
-      <div class="left-badge-dot"></div>
-      Production Ready · Live on Render
-    </div>
+<!-- 3D Floating Cubes -->
+<div class="scene" id="scene"></div>
 
-    <h1 class="left-title">
-      Smart<br>
-      <span class="gradient-text" id="typingText"></span><span class="cursor"></span>
-    </h1>
+<!-- Particle Canvas -->
+<canvas id="bg-canvas"></canvas>
 
-    <p class="left-desc">
-      A next-generation placement management platform with AI-powered predictions, real-time analytics, and role-based access control.
-    </p>
+<!-- Login Card -->
+<div class="login-wrap">
+  <div class="login-card" id="loginCard">
 
-    <div class="stats-row">
-      <div class="stat-item">
-        <div class="stat-num" data-count="6">0</div>
-        <div class="stat-label">ML Factors</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="stat-num" data-count="5">0</div>
-        <div class="stat-label">Chart Types</div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <div class="stat-num" data-count="100">0</div>
-        <div class="stat-label">% Secure</div>
+    <!-- Logo -->
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      <div>
+        <div class="logo-text">Placement Analytics</div>
+        <div class="logo-sub">Smart placement management</div>
       </div>
     </div>
 
-    <div class="features">
-      <div class="feature-pill">📊 Analytics Dashboard</div>
-      <div class="feature-pill">🤖 ML Predictor</div>
-      <div class="feature-pill">📄 PDF Export</div>
-      <div class="feature-pill">📁 CSV Upload</div>
-      <div class="feature-pill">🌙 Dark Mode</div>
-      <div class="feature-pill">🔐 Secure Auth</div>
+    <!-- Heading -->
+    <div class="heading">
+      <h1>Welcome back</h1>
+      <p>Sign in to continue to your dashboard</p>
     </div>
-  </div>
 
-  <!-- Right Panel -->
-  <div class="right-panel">
-    <div class="login-card">
-
-      <div class="card-logo">🎓</div>
-      <div class="card-title">Welcome back</div>
-      <div class="card-subtitle">Sign in to your Placement Analytics account</div>
-
-      <!-- Role tabs -->
-      <div class="role-tabs">
-        <button class="role-tab" onclick="setRole('student')" id="tab-student">
-          🎓 Student
-        </button>
-        <button class="role-tab active" onclick="setRole('admin')" id="tab-admin">
-          👑 Admin
-        </button>
-      </div>
-
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">
-            {% if category == 'danger' %}❌{% else %}✅{% endif %}
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endwith %}
-
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <div class="input-wrap">
-          <span class="input-icon">✉️</span>
-          <input type="email" id="email" class="form-control"
-                 placeholder="you@example.com" autocomplete="email">
+    <!-- Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {% if category == 'danger' %}❌{% else %}✅{% endif %}
+          {{ message }}
         </div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- Form -->
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <div class="input-wrap">
+        <span class="input-icon">✉️</span>
+        <input type="email" id="email" class="form-control"
+               placeholder="you@example.com" autocomplete="email">
       </div>
-
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <div class="input-wrap">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="password" class="form-control"
-                 placeholder="••••••••" autocomplete="current-password">
-          <button class="eye-btn" onclick="togglePwd()" type="button" id="eyeBtn">👁️</button>
-        </div>
-      </div>
-
-      <button class="btn-submit" onclick="submitLogin()" id="loginBtn">
-        <div class="spinner"></div>
-        <span class="btn-text">Sign In →</span>
-      </button>
-
-      <div class="divider">
-        <div class="divider-line"></div>
-        <span class="divider-text">or</span>
-        <div class="divider-line"></div>
-      </div>
-
-      <div class="card-links">
-        <a href="{{ url_for('forgot_password') }}" class="card-link">
-          🔑 Forgot your password?
-        </a>
-      </div>
-
     </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="password" class="form-control"
+               placeholder="••••••••" autocomplete="current-password">
+        <button class="eye-btn" onclick="togglePwd()" type="button" id="eyeBtn">👁️</button>
+      </div>
+    </div>
+
+    <button class="btn-submit" onclick="submitLogin()" id="loginBtn">
+      Sign In →
+    </button>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">or</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="card-footer">
+      <a href="{{ url_for('forgot_password') }}">🔑 Forgot your password?</a>
+    </div>
+
   </div>
 </div>
 
 <script>
-  // Particles
-  const container = document.getElementById('particles');
-  for (let i = 0; i < 25; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 3 + 1;
-    p.style.cssText = `
-      width: ${size}px; height: ${size}px;
-      left: ${Math.random() * 100}%;
-      animation-duration: ${Math.random() * 15 + 10}s;
-      animation-delay: ${Math.random() * 15}s;
-      opacity: ${Math.random() * 0.5 + 0.1};
+// ── 3D Tilt on mouse move ──
+const card = document.getElementById('loginCard');
+document.addEventListener('mousemove', e => {
+  const rect = card.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const dx = (e.clientX - cx) / window.innerWidth;
+  const dy = (e.clientY - cy) / window.innerHeight;
+  card.style.transform = `translateY(0) rotateX(${-dy * 8}deg) rotateY(${dx * 8}deg)`;
+});
+document.addEventListener('mouseleave', () => {
+  card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+});
+
+// ── Floating 3D Cubes ──
+const scene = document.getElementById('scene');
+const cubeData = [
+  { x:8, y:15, size:30, dur:12, delay:0, color:'99,102,241' },
+  { x:85, y:10, size:20, dur:15, delay:-3, color:'16,185,129' },
+  { x:92, y:70, size:35, dur:10, delay:-5, color:'99,102,241' },
+  { x:5, y:75, size:25, dur:18, delay:-7, color:'245,158,11' },
+  { x:50, y:5, size:15, dur:20, delay:-2, color:'16,185,129' },
+  { x:70, y:85, size:28, dur:14, delay:-9, color:'99,102,241' },
+  { x:20, y:90, size:18, dur:16, delay:-4, color:'239,68,68' },
+];
+cubeData.forEach(d => {
+  const cube = document.createElement('div');
+  cube.className = 'cube';
+  cube.style.cssText = `
+    left:${d.x}%;top:${d.y}%;
+    width:${d.size}px;height:${d.size}px;
+    animation-duration:${d.dur}s;
+    animation-delay:${d.delay}s;
+  `;
+  ['front','back','left','right','top','bottom'].forEach(face => {
+    const f = document.createElement('div');
+    f.className = `cube-face ${face}`;
+    f.style.cssText = `
+      width:${d.size}px;height:${d.size}px;
+      border-color:rgba(${d.color},0.3);
+      background:rgba(${d.color},0.04);
     `;
-    container.appendChild(p);
-  }
-
-  // Shooting stars
-  for (let i = 0; i < 4; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    s.style.cssText = `
-      width: ${Math.random() * 150 + 80}px;
-      top: ${Math.random() * 60}%;
-      left: ${Math.random() * 30}%;
-      animation-duration: ${Math.random() * 4 + 3}s;
-      animation-delay: ${Math.random() * 8}s;
-    `;
-    document.querySelector('.bg').appendChild(s);
-  }
-
-  // Typing animation
-  const words = ['Analytics', 'Placement', 'Predictor', 'Dashboard'];
-  let wordIdx = 0, charIdx = 0, deleting = false;
-  function type() {
-    const word = words[wordIdx];
-    const el = document.getElementById('typingText');
-    if (!el) return;
-    if (!deleting) {
-      el.textContent = word.slice(0, ++charIdx);
-      if (charIdx === word.length) { deleting = true; setTimeout(type, 1800); return; }
-    } else {
-      el.textContent = word.slice(0, --charIdx);
-      if (charIdx === 0) { deleting = false; wordIdx = (wordIdx + 1) % words.length; }
-    }
-    setTimeout(type, deleting ? 60 : 90);
-  }
-  type();
-
-  // Counter animation
-  document.querySelectorAll('[data-count]').forEach(el => {
-    const target = parseInt(el.dataset.count);
-    let current = 0;
-    const step = target / 40;
-    const timer = setInterval(() => {
-      current += step;
-      if (current >= target) { el.textContent = target + (target === 100 ? '' : '+'); clearInterval(timer); return; }
-      el.textContent = Math.floor(current);
-    }, 40);
+    if (face === 'front')  f.style.transform = `translateZ(${d.size/2}px)`;
+    if (face === 'back')   f.style.transform = `rotateY(180deg) translateZ(${d.size/2}px)`;
+    if (face === 'left')   f.style.transform = `rotateY(-90deg) translateZ(${d.size/2}px)`;
+    if (face === 'right')  f.style.transform = `rotateY(90deg) translateZ(${d.size/2}px)`;
+    if (face === 'top')    f.style.transform = `rotateX(90deg) translateZ(${d.size/2}px)`;
+    if (face === 'bottom') f.style.transform = `rotateX(-90deg) translateZ(${d.size/2}px)`;
+    cube.appendChild(f);
   });
+  scene.appendChild(cube);
+});
 
-  // Role tabs
-  function setRole(role) {
-    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('tab-' + role).classList.add('active');
-    if (role === 'admin') {
-      document.getElementById('email').placeholder = 'admin@placement.com';
-    } else {
-      document.getElementById('email').placeholder = 'govind@example.com';
-    }
-  }
+// ── Particle Canvas ──
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+});
 
-  // Toggle password
-  let pwdVisible = false;
-  function togglePwd() {
-    pwdVisible = !pwdVisible;
-    const inp = document.getElementById('password');
-    inp.type = pwdVisible ? 'text' : 'password';
-    document.getElementById('eyeBtn').textContent = pwdVisible ? '🙈' : '👁️';
-  }
+const particles = Array.from({length: 60}, () => ({
+  x: Math.random() * W,
+  y: Math.random() * H,
+  r: Math.random() * 1.5 + 0.3,
+  vx: (Math.random() - 0.5) * 0.3,
+  vy: (Math.random() - 0.5) * 0.3,
+  o: Math.random() * 0.5 + 0.1,
+  c: Math.random() > 0.5 ? '99,102,241' : '16,185,129'
+}));
 
-  // Submit with loading state
-  function submitLogin() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    if (!email || !password) {
-      shake();
-      return;
-    }
-    const btn = document.getElementById('loginBtn');
-    btn.classList.add('loading');
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/login';
-    [['email', email], ['password', password]].forEach(([k, v]) => {
-      const inp = document.createElement('input');
-      inp.type = 'hidden'; inp.name = k; inp.value = v;
-      form.appendChild(inp);
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W;
+    if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H;
+    if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${p.c},${p.o})`;
+    ctx.fill();
+  });
+  // Draw connections
+  particles.forEach((a, i) => {
+    particles.slice(i+1).forEach(b => {
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(99,102,241,${0.08 * (1 - dist/100)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
     });
-    document.body.appendChild(form);
-    form.submit();
-  }
-
-  function shake() {
-    const card = document.querySelector('.login-card');
-    card.style.animation = 'none';
-    setTimeout(() => {
-      card.style.animation = 'shake 0.4s ease';
-    }, 10);
-  }
-
-  // Enter key
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') submitLogin();
   });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── Password toggle ──
+let pwdVisible = false;
+function togglePwd() {
+  pwdVisible = !pwdVisible;
+  document.getElementById('password').type = pwdVisible ? 'text' : 'password';
+  document.getElementById('eyeBtn').textContent = pwdVisible ? '🙈' : '👁️';
+}
+
+// ── Submit ──
+function submitLogin() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) {
+    card.style.animation = 'none';
+    card.style.transform = 'translateX(-8px)';
+    setTimeout(() => { card.style.transform = 'translateX(8px)'; }, 80);
+    setTimeout(() => { card.style.transform = 'translateX(-5px)'; }, 160);
+    setTimeout(() => { card.style.transform = 'translateX(0)'; }, 240);
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  btn.classList.add('loading');
+  btn.textContent = 'Signing in...';
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = '/login';
+  [['email', email], ['password', password]].forEach(([k, v]) => {
+    const i = document.createElement('input');
+    i.type = 'hidden'; i.name = k; i.value = v;
+    form.appendChild(i);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
+// Enter key
+document.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
 </script>
 </body>
 </html>
