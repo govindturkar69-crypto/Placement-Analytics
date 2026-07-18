@@ -1,123 +1,264 @@
 {% extends "base.html" %}
-{% block title %}Upload CSV{% endblock %}
+{% block title %}Bulk Upload Students{% endblock %}
 
 {% block content %}
+
+<!-- Page Header -->
 <div class="page-header">
-  <h1>📁 Bulk Upload Students</h1>
-  <p>Upload a CSV file to add multiple students at once</p>
+  <div class="page-header-row">
+    <div>
+      <h1 style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:28px">📁</span> Bulk Upload Students
+      </h1>
+      <p>Upload a CSV file to add multiple students at once</p>
+    </div>
+    <a href="{{ url_for('students') }}" class="btn-outline">
+      👨‍🎓 View Students
+    </a>
+  </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
+<!-- Main Grid -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px">
 
-  <!-- Upload Form -->
+  <!-- Upload Card -->
   <div class="card">
-    <div class="card-title">📤 Upload CSV File</div>
-    
-    <!-- Drag & Drop Area -->
+    <div class="card-title">
+      <span class="card-title-dot"></span>
+      📤 Upload CSV File
+    </div>
+
+    <!-- Drop Zone -->
     <div id="dropZone"
-         style="border:2px dashed #e2e8f0;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:all 0.2s;margin-bottom:20px"
          onclick="document.getElementById('csvFile').click()"
-         ondragover="event.preventDefault();this.style.borderColor='#2563eb';this.style.background='#eff6ff'"
-         ondragleave="this.style.borderColor='#e2e8f0';this.style.background='white'"
-         ondrop="handleDrop(event)">
-      <div style="font-size:48px;margin-bottom:12px">📄</div>
-      <div style="font-size:16px;font-weight:600;color:#1e293b;margin-bottom:4px">
-        Click or drag CSV file here
+         ondragover="handleDragOver(event)"
+         ondragleave="handleDragLeave(event)"
+         ondrop="handleDrop(event)"
+         style="border:2px dashed var(--border);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);margin-bottom:20px;position:relative;overflow:hidden;background:var(--bg)">
+
+      <!-- Animated background -->
+      <div id="dropBg" style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,0),rgba(16,185,129,0));transition:background 0.3s;pointer-events:none"></div>
+
+      <div style="position:relative;z-index:1">
+        <div id="dropIcon" style="font-size:52px;margin-bottom:14px;transition:transform 0.3s;display:block">📂</div>
+        <div id="dropTitle" style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">
+          Click or drag CSV file here
+        </div>
+        <div id="dropSub" style="font-size:13px;color:var(--muted)">Only .csv files supported · Max 10MB</div>
+        <div id="fileName" style="margin-top:14px;font-size:13.5px;color:#10b981;font-weight:700;display:none"></div>
+
+        <!-- Upload progress -->
+        <div id="uploadProgress" style="display:none;margin-top:16px">
+          <div style="background:var(--border);border-radius:50px;height:6px;overflow:hidden;max-width:200px;margin:0 auto">
+            <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#10b981);border-radius:50px;transition:width 0.3s"></div>
+          </div>
+          <div id="progressText" style="font-size:12px;color:var(--muted);margin-top:8px">Processing...</div>
+        </div>
       </div>
-      <div style="font-size:13px;color:#94a3b8">Only .csv files supported</div>
-      <div id="fileName" style="margin-top:12px;font-size:13px;color:#2563eb;font-weight:600"></div>
     </div>
 
     <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="showFileName(this)">
 
-    <button class="btn-primary" onclick="submitUpload()">
-      📤 Upload & Add Students
-    </button>
-  </div>
-
-  <!-- Instructions -->
-  <div class="card">
-    <div class="card-title">📋 CSV Format Required</div>
-    
-    <p style="font-size:13px;color:#64748b;margin-bottom:16px">
-      Your CSV file must have these exact column names:
-    </p>
-
-    <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:20px;overflow-x:auto">
-      <table style="width:100%;font-size:12px">
-        <thead>
-          <tr style="background:#1e293b;color:white">
-            <th style="padding:8px;text-align:left">Column</th>
-            <th style="padding:8px;text-align:left">Example</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="background:white">
-            <td style="padding:8px"><code>name</code></td>
-            <td style="padding:8px">Rahul Sharma</td>
-          </tr>
-          <tr style="background:#f8fafc">
-            <td style="padding:8px"><code>email</code></td>
-            <td style="padding:8px">rahul@example.com</td>
-          </tr>
-          <tr style="background:white">
-            <td style="padding:8px"><code>branch</code></td>
-            <td style="padding:8px">CSE</td>
-          </tr>
-          <tr style="background:#f8fafc">
-            <td style="padding:8px"><code>cgpa</code></td>
-            <td style="padding:8px">8.5</td>
-          </tr>
-          <tr style="background:white">
-            <td style="padding:8px"><code>skills</code></td>
-            <td style="padding:8px">Python, Java, SQL</td>
-          </tr>
-          <tr style="background:#f8fafc">
-            <td style="padding:8px"><code>password</code></td>
-            <td style="padding:8px">student123</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- File Info -->
+    <div id="fileInfo" style="display:none;background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">📄</span>
+        <div style="flex:1">
+          <div id="fileInfoName" style="font-size:13.5px;font-weight:700;color:var(--text)"></div>
+          <div id="fileInfoSize" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+        </div>
+        <button onclick="clearFile()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px;transition:color 0.2s"
+          onmouseover="this.style.color='#ef4444'"
+          onmouseout="this.style.color='var(--muted)'">✕</button>
+      </div>
     </div>
 
-    <!-- Download Sample -->
-    <button onclick="downloadSample()" 
-            class="btn-outline" style="width:100%;justify-content:center">
-      ⬇️ Download Sample CSV
+    <button class="btn-primary" onclick="submitUpload()" id="uploadBtn">
+      <span id="uploadBtnText">📤 Upload & Add Students</span>
+      <span id="uploadBtnSpinner" style="display:none">⏳ Uploading...</span>
+    </button>
+
+    <!-- Tips -->
+    <div style="margin-top:16px;padding:14px;background:rgba(99,102,241,0.05);border-radius:10px;border:1px solid rgba(99,102,241,0.1)">
+      <div style="font-size:12px;font-weight:700;color:#6366f1;margin-bottom:8px">💡 Tips</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        • Passwords will be auto-hashed for security<br>
+        • Duplicate emails will be skipped<br>
+        • All students get 'student' role by default<br>
+        • Max recommended: 500 rows per upload
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructions Card -->
+  <div>
+    <!-- Format Card -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">
+        <span class="card-title-dot" style="background:#f59e0b"></span>
+        📋 Required CSV Format
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        Your CSV must have these exact column headers:
+      </p>
+
+      <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border)">
+        {% for col, ex, color in [
+          ('name','Rahul Sharma','#6366f1'),
+          ('email','rahul@example.com','#10b981'),
+          ('branch','CSE','#f59e0b'),
+          ('cgpa','8.5','#ef4444'),
+          ('skills','Python, Java, SQL','#8b5cf6'),
+          ('password','student123','#0ea5e9')
+        ] %}
+        <div style="display:flex;align-items:center;padding:11px 16px;
+          {% if not loop.last %}border-bottom:1px solid var(--border);{% endif %}
+          background:{% if loop.index % 2 == 0 %}var(--bg){% else %}var(--card){% endif %};
+          transition:background 0.2s"
+          onmouseover="this.style.background='rgba(99,102,241,0.04)'"
+          onmouseout="this.style.background='{% if loop.index % 2 == 0 %}var(--bg){% else %}var(--card){% endif %}'">
+          <span style="background:{{ color }}1a;color:{{ color }};border:1px solid {{ color }}33;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;font-family:monospace;min-width:90px;display:inline-block">
+            {{ col }}
+          </span>
+          <span style="font-size:13px;color:var(--muted);margin-left:14px">{{ ex }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Sample Preview -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">
+        <span class="card-title-dot" style="background:#10b981"></span>
+        👁️ Sample Preview
+      </div>
+      <div style="background:#0f172a;border-radius:10px;padding:16px;overflow-x:auto;font-family:monospace">
+        <div style="font-size:11px;color:#64748b;margin-bottom:8px">sample_students.csv</div>
+        <pre style="color:#e2e8f0;font-size:11.5px;line-height:1.8;margin:0">
+<span style="color:#818cf8">name</span>,<span style="color:#818cf8">email</span>,<span style="color:#818cf8">branch</span>,<span style="color:#818cf8">cgpa</span>,<span style="color:#818cf8">skills</span>,<span style="color:#818cf8">password</span>
+<span style="color:#34d399">Rahul Sharma</span>,rahul@ex.com,<span style="color:#fbbf24">CSE</span>,<span style="color:#f87171">8.5</span>,"Python, Java",<span style="color:#94a3b8">student123</span>
+<span style="color:#34d399">Priya Patel</span>,priya@ex.com,<span style="color:#fbbf24">IT</span>,<span style="color:#f87171">9.1</span>,"React, SQL",<span style="color:#94a3b8">student123</span>
+<span style="color:#34d399">Amit Kumar</span>,amit@ex.com,<span style="color:#fbbf24">ECE</span>,<span style="color:#f87171">7.8</span>,"C++, DSA",<span style="color:#94a3b8">student123</span></pre>
+      </div>
+    </div>
+
+    <!-- Download -->
+    <button onclick="downloadSample()"
+            style="width:100%;padding:13px;border:2px solid var(--border);background:var(--card);border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);font-family:inherit;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px"
+            onmouseover="this.style.borderColor='#6366f1';this.style.color='#6366f1';this.style.background='rgba(99,102,241,0.04)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)';this.style.background='var(--card)'">
+      ⬇️ Download Sample CSV Template
     </button>
   </div>
 </div>
 
+<!-- Stats row -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:960px;margin-top:24px">
+  <div style="background:var(--card);border-radius:14px;padding:18px 20px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;gap:14px">
+    <div style="font-size:28px">⚡</div>
+    <div>
+      <div style="font-size:14px;font-weight:700;color:var(--text)">Fast Upload</div>
+      <div style="font-size:12px;color:var(--muted)">500+ students in seconds</div>
+    </div>
+  </div>
+  <div style="background:var(--card);border-radius:14px;padding:18px 20px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;gap:14px">
+    <div style="font-size:28px">🔐</div>
+    <div>
+      <div style="font-size:14px;font-weight:700;color:var(--text)">Auto Hashing</div>
+      <div style="font-size:12px;color:var(--muted)">Passwords secured automatically</div>
+    </div>
+  </div>
+  <div style="background:var(--card);border-radius:14px;padding:18px 20px;border:1px solid var(--border);box-shadow:var(--shadow);display:flex;align-items:center;gap:14px">
+    <div style="font-size:28px">✅</div>
+    <div>
+      <div style="font-size:14px;font-weight:700;color:var(--text)">Smart Validation</div>
+      <div style="font-size:12px;color:var(--muted)">Duplicates auto-skipped</div>
+    </div>
+  </div>
+</div>
+
 <script>
-function showFileName(input) {
-  if (input.files[0]) {
-    document.getElementById('fileName').innerText = '✅ ' + input.files[0].name;
-    document.getElementById('dropZone').style.borderColor = '#10b981';
-    document.getElementById('dropZone').style.background = '#ecfdf5';
-  }
+let selectedFile = null;
+
+function handleDragOver(e) {
+  e.preventDefault();
+  const zone = document.getElementById('dropZone');
+  zone.style.borderColor = '#6366f1';
+  document.getElementById('dropBg').style.background = 'linear-gradient(135deg,rgba(99,102,241,0.05),rgba(16,185,129,0.05))';
+  document.getElementById('dropIcon').style.transform = 'scale(1.15) translateY(-4px)';
+}
+
+function handleDragLeave(e) {
+  const zone = document.getElementById('dropZone');
+  zone.style.borderColor = 'var(--border)';
+  document.getElementById('dropBg').style.background = 'linear-gradient(135deg,rgba(99,102,241,0),rgba(16,185,129,0))';
+  document.getElementById('dropIcon').style.transform = 'scale(1)';
 }
 
 function handleDrop(e) {
   e.preventDefault();
-  document.getElementById('dropZone').style.borderColor = '#e2e8f0';
-  document.getElementById('dropZone').style.background = 'white';
+  handleDragLeave(e);
   const file = e.dataTransfer.files[0];
   if (file && file.name.endsWith('.csv')) {
-    document.getElementById('csvFile').files = e.dataTransfer.files;
-    document.getElementById('fileName').innerText = '✅ ' + file.name;
-    document.getElementById('dropZone').style.borderColor = '#10b981';
-    document.getElementById('dropZone').style.background = '#ecfdf5';
+    setFile(file);
   } else {
-    alert('Please upload a CSV file only!');
+    showError('Please drop a .csv file only!');
   }
 }
 
+function showFileName(input) {
+  if (input.files[0]) setFile(input.files[0]);
+}
+
+function setFile(file) {
+  selectedFile = file;
+  const zone = document.getElementById('dropZone');
+  zone.style.borderColor = '#10b981';
+  document.getElementById('dropBg').style.background = 'linear-gradient(135deg,rgba(16,185,129,0.06),rgba(99,102,241,0.04))';
+  document.getElementById('dropIcon').textContent = '✅';
+  document.getElementById('dropTitle').textContent = 'File ready to upload!';
+  document.getElementById('dropSub').textContent = 'Click Upload to proceed';
+
+  const info = document.getElementById('fileInfo');
+  document.getElementById('fileInfoName').textContent = file.name;
+  document.getElementById('fileInfoSize').textContent = (file.size / 1024).toFixed(1) + ' KB · CSV file';
+  info.style.display = 'block';
+}
+
+function clearFile() {
+  selectedFile = null;
+  document.getElementById('csvFile').value = '';
+  document.getElementById('fileInfo').style.display = 'none';
+  document.getElementById('dropIcon').textContent = '📂';
+  document.getElementById('dropTitle').textContent = 'Click or drag CSV file here';
+  document.getElementById('dropSub').textContent = 'Only .csv files supported · Max 10MB';
+  document.getElementById('dropZone').style.borderColor = 'var(--border)';
+  document.getElementById('dropBg').style.background = 'linear-gradient(135deg,rgba(99,102,241,0),rgba(16,185,129,0))';
+}
+
+function showError(msg) {
+  const zone = document.getElementById('dropZone');
+  zone.style.borderColor = '#ef4444';
+  document.getElementById('dropBg').style.background = 'linear-gradient(135deg,rgba(239,68,68,0.06),rgba(239,68,68,0.03))';
+  document.getElementById('dropIcon').textContent = '❌';
+  document.getElementById('dropTitle').textContent = msg;
+  setTimeout(() => {
+    zone.style.borderColor = 'var(--border)';
+    document.getElementById('dropBg').style.background = 'linear-gradient(135deg,rgba(99,102,241,0),rgba(16,185,129,0))';
+    document.getElementById('dropIcon').textContent = '📂';
+    document.getElementById('dropTitle').textContent = 'Click or drag CSV file here';
+  }, 2500);
+}
+
 function submitUpload() {
-  const file = document.getElementById('csvFile').files[0];
-  if (!file) {
-    alert('Please select a CSV file first!');
+  if (!selectedFile) {
+    showError('Please select a CSV file first!');
     return;
   }
+  document.getElementById('uploadBtnText').style.display = 'none';
+  document.getElementById('uploadBtnSpinner').style.display = 'inline';
+  document.getElementById('uploadBtn').style.opacity = '0.8';
+
   const form = document.createElement('form');
   form.method = 'POST';
   form.action = '/upload_csv';
@@ -126,7 +267,7 @@ function submitUpload() {
   input.type = 'file';
   input.name = 'csv_file';
   const dt = new DataTransfer();
-  dt.items.add(file);
+  dt.items.add(selectedFile);
   input.files = dt.files;
   form.appendChild(input);
   document.body.appendChild(form);
@@ -137,14 +278,18 @@ function downloadSample() {
   const csv = `name,email,branch,cgpa,skills,password
 Rahul Sharma,rahul@example.com,CSE,8.5,"Python, Java, SQL",student123
 Priya Patel,priya@example.com,IT,9.1,"React, Node.js, MySQL",student123
-Amit Kumar,amit@example.com,ECE,7.8,"C++, Python, DSA",student123`;
-  
-  const blob = new Blob([csv], {type: 'text/csv'});
+Amit Kumar,amit@example.com,ECE,7.8,"C++, Python, DSA",student123
+Sneha Verma,sneha@example.com,CSE,9.2,"Machine Learning, Python, TensorFlow",student123
+Rohan Mehta,rohan@example.com,IT,8.0,"JavaScript, React, Node.js",student123`;
+
+  const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = 'sample_students.csv';
   a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
+
 {% endblock %}
