@@ -20,7 +20,7 @@
 </div>
 
 <!-- Weight Cards -->
-<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:28px">
+<div class="predict-weights">
   {% for icon, label, weight, color in [
     ('🎓','CGPA','30%','#6366f1'),
     ('💻','Skills','25%','#10b981'),
@@ -40,7 +40,7 @@
 </div>
 
 <!-- Main Grid -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px">
+<div class="predict-main-grid">
 
   <!-- Input Form -->
   <div class="card" style="position:sticky;top:24px;align-self:start">
@@ -326,6 +326,9 @@ function submitPredict() {
     inp.value = document.getElementById(f).value;
     form.appendChild(inp);
   });
+  const csrf = document.createElement('input');
+  csrf.type = 'hidden'; csrf.name = 'csrf_token'; csrf.value = '{{ csrf_token() }}';
+  form.appendChild(csrf);
   document.body.appendChild(form);
   form.submit();
 }

@@ -38,7 +38,9 @@
   <div style="background:var(--card);border-radius:14px;padding:16px 20px;border:1px solid var(--border);box-shadow:var(--shadow)">
     <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Premium</div>
     <div style="font-size:26px;font-weight:800;color:#f59e0b;margin-top:4px">
-      {{ companies|selectattr(2,'ge',20)|list|length }}
+      {% set premium_count = namespace(val=0) %}
+      {% for c in companies %}{% if c[2] >= 20 %}{% set premium_count.val = premium_count.val + 1 %}{% endif %}{% endfor %}
+      {{ premium_count.val }}
     </div>
     <div style="font-size:12px;color:var(--muted)">20+ LPA</div>
   </div>
@@ -169,11 +171,11 @@
               <a href="{{ url_for('edit_company', company_id=c[0]) }}" class="btn-edit">
                 ✏️ Edit
               </a>
-              <a href="{{ url_for('delete_company', company_id=c[0]) }}"
-                 onclick="return confirmDelete('{{ c[1] }}')"
-                 class="btn-danger">
-                🗑️
-              </a>
+              <form method="POST" action="{{ url_for('delete_company', company_id=c[0]) }}"
+                    onsubmit="return confirmDelete('{{ c[1] }}')" style="display:inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-danger">🗑️</button>
+              </form>
             </div>
           </td>
           {% endif %}

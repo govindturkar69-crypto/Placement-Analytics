@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS students (
     cgpa FLOAT NOT NULL,
     skills TEXT,
     password VARCHAR(200) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'student',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -36,14 +37,15 @@ CREATE TABLE IF NOT EXISTS placements (
     FOREIGN KEY (company_id) REFERENCES companies(company_id) ON DELETE CASCADE
 );
 
--- Sample Data
-INSERT INTO students (name, email, branch, cgpa, skills, password) VALUES
-('Govind Sharma', 'govind@example.com', 'CSE', 8.5, 'Python, Java, MySQL', 'admin123'),
-('Priya Patel', 'priya@example.com', 'CSE', 9.1, 'React, Node.js, Python', 'admin123'),
-('Rahul Verma', 'rahul@example.com', 'IT', 7.8, 'Java, Spring Boot, SQL', 'admin123'),
-('Sneha Gupta', 'sneha@example.com', 'ECE', 8.2, 'C++, Python, ML', 'admin123'),
-('Amit Kumar', 'amit@example.com', 'CSE', 7.5, 'Java, HTML, CSS', 'admin123'),
-('Pooja Singh', 'pooja@example.com', 'IT', 8.9, 'Python, Django, PostgreSQL', 'admin123');
+-- Sample Data (passwords are plain text here — run `python scripts/init_passwords.py` after import)
+INSERT INTO students (name, email, branch, cgpa, skills, password, role) VALUES
+('Admin User', 'admin@placement.com', 'CSE', 9.0, 'Python, SQL, Management', 'admin123', 'admin'),
+('Govind Sharma', 'govind@example.com', 'CSE', 8.5, 'Python, Java, MySQL', 'admin123', 'student'),
+('Priya Patel', 'priya@example.com', 'CSE', 9.1, 'React, Node.js, Python', 'admin123', 'student'),
+('Rahul Verma', 'rahul@example.com', 'IT', 7.8, 'Java, Spring Boot, SQL', 'admin123', 'student'),
+('Sneha Gupta', 'sneha@example.com', 'ECE', 8.2, 'C++, Python, ML', 'admin123', 'student'),
+('Amit Kumar', 'amit@example.com', 'CSE', 7.5, 'Java, HTML, CSS', 'admin123', 'student'),
+('Pooja Singh', 'pooja@example.com', 'IT', 8.9, 'Python, Django, PostgreSQL', 'admin123', 'student');
 
 INSERT INTO companies (company_name, package, required_skills, visit_date) VALUES
 ('TCS', 7.5, 'Java, Python, SQL', '2024-01-15'),

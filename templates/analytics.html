@@ -23,22 +23,22 @@
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:28px">
   <div class="kpi-card" style="--kc:#6366f1">
     <div class="kpi-icon">🏢</div>
-    <div class="kpi-val" id="kpi1">{{ company_labels|length }}</div>
+    <div class="kpi-val" id="kpi1">{{ kpi_companies }}</div>
     <div class="kpi-label">Companies</div>
   </div>
   <div class="kpi-card" style="--kc:#10b981">
     <div class="kpi-icon">✅</div>
-    <div class="kpi-val" id="kpi2">{{ year_counts|map('int')|sum if year_counts else 0 }}</div>
+    <div class="kpi-val" id="kpi2">{{ kpi_placed }}</div>
     <div class="kpi-label">Total Placed</div>
   </div>
   <div class="kpi-card" style="--kc:#f59e0b">
     <div class="kpi-icon">🎓</div>
-    <div class="kpi-val" id="kpi3">{{ branch_labels|length }}</div>
+    <div class="kpi-val" id="kpi3">{{ kpi_branches }}</div>
     <div class="kpi-label">Branches</div>
   </div>
   <div class="kpi-card" style="--kc:#8b5cf6">
     <div class="kpi-icon">💻</div>
-    <div class="kpi-val" id="kpi4">{{ skill_labels|length }}</div>
+    <div class="kpi-val" id="kpi4">{{ kpi_skills }}</div>
     <div class="kpi-label">Skills Tracked</div>
   </div>
 </div>
@@ -202,10 +202,10 @@ function animateKPI(id, target) {
     el.textContent = Math.floor(cur);
   }, 30);
 }
-animateKPI('kpi1', {{ company_labels|length }});
-animateKPI('kpi2', {{ year_counts|map('int')|sum if year_counts else 0 }});
-animateKPI('kpi3', {{ branch_labels|length }});
-animateKPI('kpi4', {{ skill_labels|length }});
+animateKPI('kpi1', {{ kpi_companies }});
+animateKPI('kpi2', {{ kpi_placed }});
+animateKPI('kpi3', {{ kpi_branches }});
+animateKPI('kpi4', {{ kpi_skills }});
 
 // Common options
 const baseOptions = {
@@ -230,10 +230,10 @@ const baseOptions = {
 new Chart(document.getElementById('companyChart'), {
   type: 'bar',
   data: {
-    labels: {{ company_labels|safe }},
+    labels: {{ company_labels|tojson }},
     datasets: [{
       label: 'Students Hired',
-      data: {{ company_counts|safe }},
+      data: {{ company_counts|tojson }},
       backgroundColor: COLORS,
       borderRadius: 8,
       borderSkipped: false,
@@ -256,10 +256,10 @@ new Chart(document.getElementById('companyChart'), {
 new Chart(document.getElementById('yearChart'), {
   type: 'line',
   data: {
-    labels: {{ year_labels|safe }},
+    labels: {{ year_labels|tojson }},
     datasets: [{
       label: 'Placements',
-      data: {{ year_counts|safe }},
+      data: {{ year_counts|tojson }},
       borderColor: '#10b981',
       backgroundColor: 'rgba(16,185,129,0.08)',
       borderWidth: 3,
@@ -289,9 +289,9 @@ new Chart(document.getElementById('yearChart'), {
 new Chart(document.getElementById('branchChart'), {
   type: 'doughnut',
   data: {
-    labels: {{ branch_labels|safe }},
+    labels: {{ branch_labels|tojson }},
     datasets: [{
-      data: {{ branch_counts|safe }},
+      data: {{ branch_counts|tojson }},
       backgroundColor: COLORS,
       borderWidth: 3,
       borderColor: isDark ? '#111827' : '#ffffff',
@@ -328,10 +328,10 @@ new Chart(document.getElementById('branchChart'), {
 new Chart(document.getElementById('pkgChart'), {
   type: 'bar',
   data: {
-    labels: {{ pkg_labels|safe }},
+    labels: {{ pkg_labels|tojson }},
     datasets: [{
       label: 'Package (LPA)',
-      data: {{ pkg_values|safe }},
+      data: {{ pkg_values|tojson }},
       backgroundColor: COLORS.map((c,i) => COLORS[i % COLORS.length]),
       borderRadius: 8,
       borderSkipped: false,
@@ -354,10 +354,10 @@ new Chart(document.getElementById('pkgChart'), {
 new Chart(document.getElementById('skillChart'), {
   type: 'bar',
   data: {
-    labels: {{ skill_labels|safe }},
+    labels: {{ skill_labels|tojson }},
     datasets: [{
       label: 'Demand',
-      data: {{ skill_values|safe }},
+      data: {{ skill_values|tojson }},
       backgroundColor: COLORS,
       borderRadius: 6,
       borderSkipped: false,
