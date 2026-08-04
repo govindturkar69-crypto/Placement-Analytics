@@ -1,9 +1,88 @@
 {% extends "auth_base.html" %}
 {% block title %}Login – Placement Analytics{% endblock %}
 
+{% block illustration %}
+<div class="illustration-copy">
+  <h1>Transform Placement Data into Career Success</h1>
+  <p>Analyze placement trends, monitor student performance, and make data-driven decisions.</p>
+</div>
+
+<div class="illustration-stage">
+  <div class="particle-field" data-depth="6">
+    <span class="particle" style="left:6%;top:12%;animation-duration:9s;"></span>
+    <span class="particle" style="left:18%;top:70%;animation-duration:11s;animation-delay:.4s;"></span>
+    <span class="particle" style="left:32%;top:30%;animation-duration:8s;animation-delay:1.1s;"></span>
+    <span class="particle" style="left:48%;top:85%;animation-duration:10s;animation-delay:.2s;"></span>
+    <span class="particle" style="left:63%;top:8%;animation-duration:12s;animation-delay:.8s;"></span>
+    <span class="particle" style="left:78%;top:55%;animation-duration:9s;animation-delay:1.4s;"></span>
+    <span class="particle" style="left:91%;top:22%;animation-duration:10.5s;animation-delay:.6s;"></span>
+    <span class="particle" style="left:12%;top:92%;animation-duration:11.5s;animation-delay:1.6s;"></span>
+    <span class="particle" style="left:85%;top:80%;animation-duration:8.5s;animation-delay:.3s;"></span>
+  </div>
+
+  <div class="float-card profile-card" data-depth="14" style="top:0; left:20px; animation-delay:.05s;">
+    <div class="avatar">RS</div>
+    <div class="line"></div>
+    <div class="line short"></div>
+    <span class="badge">Placed</span>
+  </div>
+
+  <div class="float-card scan-card" data-depth="10" style="top:60px; right:10px; animation-delay:.2s;">
+    <div class="scan-beam"></div>
+    <div class="doc-line"></div>
+    <div class="doc-line"></div>
+    <div class="doc-line"></div>
+    <div class="doc-line" style="width:45%;"></div>
+  </div>
+
+  <div class="float-card chart-card" data-depth="8" style="top:150px; left:0; width:150px; animation-delay:.35s;">
+    <div class="chart-label">Placements / Year</div>
+    <div class="bar-chart">
+      <span class="bar" style="height:40%; animation-delay:.1s;"></span>
+      <span class="bar" style="height:65%; animation-delay:.2s;"></span>
+      <span class="bar" style="height:50%; animation-delay:.3s;"></span>
+      <span class="bar" style="height:85%; animation-delay:.4s;"></span>
+      <span class="bar" style="height:70%; animation-delay:.5s;"></span>
+      <span class="bar" style="height:100%; animation-delay:.6s;"></span>
+    </div>
+  </div>
+
+  <div class="float-card chart-card" data-depth="12" style="top:130px; right:30px; width:126px; animation-delay:.5s;">
+    <div class="chart-label">Growth Trend</div>
+    <svg viewBox="0 0 100 40" width="100%" height="46">
+      <polyline class="line-chart-path" points="2,32 20,24 38,28 56,14 74,18 98,4"></polyline>
+    </svg>
+  </div>
+
+  <div class="float-card" data-depth="9" style="top:230px; left:130px; width:96px; height:96px; display:flex; align-items:center; justify-content:center; animation-delay:.6s;">
+    <svg viewBox="0 0 80 80" width="72" height="72">
+      <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"></circle>
+      <circle class="donut-ring" cx="40" cy="40" r="34" fill="none" stroke="url(#donutGrad)" stroke-width="8" stroke-linecap="round" transform="rotate(-90 40 40)"></circle>
+      <defs>
+        <linearGradient id="donutGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2563EB"></stop>
+          <stop offset="100%" stop-color="#06B6D4"></stop>
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="float-card flow-card" data-depth="5" style="bottom:0; left:0; animation-delay:.7s;">
+    <div class="chart-label">Placement Pipeline</div>
+    <div class="flow-nodes">
+      <div class="flow-node"><div class="dot">🎓</div><span>Students</span></div>
+      <div class="flow-track"><span class="flow-dot"></span></div>
+      <div class="flow-node"><div class="dot">🏢</div><span>Companies</span></div>
+      <div class="flow-track"><span class="flow-dot" style="animation-delay:1.3s;"></span></div>
+      <div class="flow-node"><div class="dot">✅</div><span>Placed</span></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 {% block card_content %}
 <div class="heading">
-  <h1>Welcome back</h1>
+  <h1>Welcome Back</h1>
   <p>Sign in to continue to your dashboard</p>
 </div>
 
@@ -35,35 +114,43 @@
   </div>
 </div>
 
-<button class="btn-submit" onclick="submitLogin()" id="loginBtn">
-  Sign In →
-</button>
-
-<div class="divider">
-  <div class="divider-line"></div>
-  <span class="divider-text">or</span>
-  <div class="divider-line"></div>
+<div class="checkbox-row">
+  <label class="checkbox-label">
+    <input type="checkbox" id="rememberMe">
+    Remember me
+  </label>
+  <a class="link-muted" href="{{ url_for('forgot_password') }}">Forgot password?</a>
 </div>
 
+<button class="btn-submit" onclick="submitLogin()" id="loginBtn">
+  <span class="btn-label">Sign In →</span>
+  <span class="btn-loader"><span></span><span></span><span></span></span>
+</button>
+
 <div class="auth-footer">
-  <a href="{{ url_for('forgot_password') }}">🔑 Forgot your password?</a>
+  <a href="{{ url_for('forgot_password') }}">Need help getting back in?</a>
 </div>
 {% endblock %}
 
 {% block extra_script %}
 function submitLogin() {
-  const email    = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+  const email      = document.getElementById('email').value.trim();
+  const password   = document.getElementById('password').value;
+  const rememberMe = document.getElementById('rememberMe').checked;
   if (!email || !password) {
     shakeCard();
     return;
   }
   const btn = document.getElementById('loginBtn');
-  btn.classList.add('loading');
-  btn.textContent = 'Signing in...';
+  setLoading(btn, true);
   const form = document.createElement('form');
   form.method = 'POST'; form.action = '/login';
-  [['email', email], ['password', password], ['csrf_token', '{{ csrf_token() }}']].forEach(([k, v]) => {
+  [
+    ['email', email],
+    ['password', password],
+    ['remember_me', rememberMe ? 'on' : ''],
+    ['csrf_token', '{{ csrf_token() }}'],
+  ].forEach(([k, v]) => {
     const i = document.createElement('input');
     i.type = 'hidden'; i.name = k; i.value = v;
     form.appendChild(i);

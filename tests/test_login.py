@@ -73,6 +73,33 @@ class LoginTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         connection.cursor.assert_not_called()
 
+    def test_remember_me_checked_makes_the_session_permanent(self):
+        stored_hash = generate_password_hash('correct-horse-battery-staple')
+        connection, cursor = mock_connection()
+        cursor.fetchone.return_value = (1, 'Alice', 'student', stored_hash)
+        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+            self.client.post('/login', data={
+                'email': 'alice@example.com',
+                'password': 'correct-horse-battery-staple',
+                'remember_me': 'on',
+            })
+
+        with self.client.session_transaction() as sess:
+            self.assertTrue(sess.permanent)
+
+    def test_remember_me_unchecked_leaves_the_session_non_permanent(self):
+        stored_hash = generate_password_hash('correct-horse-battery-staple')
+        connection, cursor = mock_connection()
+        cursor.fetchone.return_value = (1, 'Alice', 'student', stored_hash)
+        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+            self.client.post('/login', data={
+                'email': 'alice@example.com',
+                'password': 'correct-horse-battery-staple',
+            })
+
+        with self.client.session_transaction() as sess:
+            self.assertFalse(sess.permanent)
+
 
 class AccessControlBoundaryTests(AppTestCase):
     """Confirms @admin_required actually blocks a logged-in student."""
