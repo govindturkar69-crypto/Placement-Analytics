@@ -19,7 +19,7 @@
 </div>
 
 <!-- Main Grid -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px">
+<div class="page-two-col page-two-col-wide">
 
   <!-- Upload Card -->
   <div class="card">
@@ -270,6 +270,9 @@ function submitUpload() {
   dt.items.add(selectedFile);
   input.files = dt.files;
   form.appendChild(input);
+  const csrf = document.createElement('input');
+  csrf.type = 'hidden'; csrf.name = 'csrf_token'; csrf.value = '{{ csrf_token() }}';
+  form.appendChild(csrf);
   document.body.appendChild(form);
   form.submit();
 }

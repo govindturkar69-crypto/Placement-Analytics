@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  <title>500 – Server Error</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:#050816;min-height:100vh;display:flex;align-items:center;justify-content:center;color:white}
+    .grid{position:fixed;inset:0;background-image:linear-gradient(rgba(239,68,68,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(239,68,68,0.08) 1px,transparent 1px);background-size:50px 50px;z-index:0}
+    .wrap{position:relative;z-index:1;text-align:center;padding:40px 20px}
+    .code{font-size:120px;font-weight:800;background:linear-gradient(135deg,#ef4444,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;letter-spacing:-4px}
+    .title{font-size:24px;font-weight:700;margin:16px 0 8px;color:white}
+    .sub{font-size:15px;color:rgba(255,255,255,0.4);margin-bottom:32px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;text-decoration:none;border-radius:12px;font-size:14px;font-weight:600;transition:all 0.2s;box-shadow:0 8px 24px rgba(99,102,241,0.35)}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(99,102,241,0.5)}
+    .emoji{font-size:64px;display:block;margin-bottom:16px;animation:shake 1s ease-in-out infinite}
+    @keyframes shake{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-5deg)}75%{transform:rotate(5deg)}}
+  </style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+  <span class="emoji">⚠️</span>
+  <div class="code">500</div>
+  <div class="title">Internal Server Error</div>
+  <div class="sub">Something went wrong on our end. Please try again in a moment.</div>
+  <a href="/" class="btn">← Go to Dashboard</a>
+</div>
+</body>
+</html>

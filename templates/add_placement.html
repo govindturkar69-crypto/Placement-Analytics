@@ -54,6 +54,9 @@ function submitPlacement() {
     inp.type='hidden'; inp.name=f; inp.value=document.getElementById(f).value;
     form.appendChild(inp);
   });
+  const csrf = document.createElement('input');
+  csrf.type='hidden'; csrf.name='csrf_token'; csrf.value='{{ csrf_token() }}';
+  form.appendChild(csrf);
   document.body.appendChild(form); form.submit();
 }
 </script>
