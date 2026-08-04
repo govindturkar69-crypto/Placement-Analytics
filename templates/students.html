@@ -73,7 +73,7 @@
       </thead>
       <tbody id="studentTable">
         {% for s in students %}
-        <tr style="animation:fadeUp 0.3s ease {{ loop.index * 0.04 }}s both">
+        <tr>
           <td style="color:var(--muted);font-size:12px;font-weight:600">
             {{ ((page - 1) * 20) + loop.index }}
           </td>

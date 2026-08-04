@@ -1,575 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
-  <title>Login – Placement Analytics</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+{% extends "auth_base.html" %}
+{% block title %}Login – Placement Analytics{% endblock %}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      min-height: 100vh;
-      background: #050816;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+{% block card_content %}
+<div class="heading">
+  <h1>Welcome back</h1>
+  <p>Sign in to continue to your dashboard</p>
+</div>
 
-    /* ── 3D CANVAS BACKGROUND ── */
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-    }
-
-    /* ── FLOATING 3D CUBES ── */
-    .scene {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      perspective: 1000px;
-      pointer-events: none;
-    }
-    .cube {
-      position: absolute;
-      width: 40px; height: 40px;
-      transform-style: preserve-3d;
-      animation: cubeRotate linear infinite;
-    }
-    .cube-face {
-      position: absolute;
-      width: 40px; height: 40px;
-      border: 1px solid rgba(99,102,241,0.3);
-      background: rgba(99,102,241,0.04);
-      backdrop-filter: blur(2px);
-    }
-    .cube-face.front  { transform: translateZ(20px); }
-    .cube-face.back   { transform: rotateY(180deg) translateZ(20px); }
-    .cube-face.left   { transform: rotateY(-90deg) translateZ(20px); }
-    .cube-face.right  { transform: rotateY(90deg) translateZ(20px); }
-    .cube-face.top    { transform: rotateX(90deg) translateZ(20px); }
-    .cube-face.bottom { transform: rotateX(-90deg) translateZ(20px); }
-
-    @keyframes cubeRotate {
-      0%   { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-      100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
-    }
-
-    /* ── GRID FLOOR ── */
-    .grid-floor {
-      position: fixed;
-      bottom: -100px;
-      left: 50%;
-      transform: translateX(-50%) rotateX(75deg);
-      width: 200vw;
-      height: 200vw;
-      background-image:
-        linear-gradient(rgba(99,102,241,0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(99,102,241,0.15) 1px, transparent 1px);
-      background-size: 60px 60px;
-      z-index: 1;
-      animation: gridScroll 8s linear infinite;
-    }
-    @keyframes gridScroll {
-      0%   { background-position: 0 0; }
-      100% { background-position: 0 60px; }
-    }
-
-    /* ── GLOW ORBS ── */
-    .glow {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(100px);
-      z-index: 1;
-      animation: glowPulse 6s ease-in-out infinite;
-    }
-    .glow-1 {
-      width: 400px; height: 400px;
-      background: rgba(99,102,241,0.15);
-      top: -100px; left: -100px;
-      animation-delay: 0s;
-    }
-    .glow-2 {
-      width: 300px; height: 300px;
-      background: rgba(16,185,129,0.1);
-      bottom: -50px; right: -50px;
-      animation-delay: -3s;
-    }
-    @keyframes glowPulse {
-      0%,100% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.1); }
-    }
-
-    /* ── LOGIN CARD ── */
-    .login-wrap {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 400px;
-      padding: 20px;
-    }
-
-    .login-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 24px;
-      padding: 40px 36px;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,0.05) inset,
-        0 32px 80px rgba(0,0,0,0.5),
-        0 0 80px rgba(99,102,241,0.08);
-      animation: cardFloat 6s ease-in-out infinite, cardIn 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
-      transform-style: preserve-3d;
-    }
-    @keyframes cardFloat {
-      0%,100% { transform: translateY(0px) rotateX(0deg); }
-      50% { transform: translateY(-8px) rotateX(1deg); }
-    }
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(40px) scale(0.9); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* Holographic shimmer */
-    .login-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 24px;
-      background: linear-gradient(
-        135deg,
-        rgba(255,255,255,0.05) 0%,
-        transparent 40%,
-        transparent 60%,
-        rgba(99,102,241,0.05) 100%
-      );
-      pointer-events: none;
-    }
-
-    /* ── LOGO ── */
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 32px;
-      animation: fadeUp 0.6s ease 0.2s both;
-    }
-    .logo-icon {
-      width: 44px; height: 44px;
-      background: linear-gradient(135deg, #6366f1, #10b981);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 8px 20px rgba(99,102,241,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset;
-      position: relative;
-      overflow: hidden;
-    }
-    .logo-icon::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      animation: logoShine 3s ease infinite;
-    }
-    @keyframes logoShine {
-      0% { left: -100%; }
-      50%,100% { left: 100%; }
-    }
-    .logo-text {
-      font-size: 15px;
-      font-weight: 700;
-      color: white;
-      letter-spacing: -0.3px;
-    }
-    .logo-sub {
-      font-size: 11px;
-      color: rgba(255,255,255,0.35);
-      font-weight: 400;
-      margin-top: 1px;
-    }
-
-    /* ── HEADING ── */
-    .heading {
-      margin-bottom: 28px;
-      animation: fadeUp 0.6s ease 0.3s both;
-    }
-    .heading h1 {
-      font-size: 26px;
-      font-weight: 700;
-      color: white;
-      letter-spacing: -0.5px;
-      margin-bottom: 4px;
-    }
-    .heading p {
-      font-size: 13.5px;
-      color: rgba(255,255,255,0.35);
-      font-weight: 400;
-    }
-
-    /* ── FORM ── */
-    .form-group {
-      margin-bottom: 16px;
-      animation: fadeUp 0.6s ease both;
-    }
-    .form-group:nth-child(1) { animation-delay: 0.4s; }
-    .form-group:nth-child(2) { animation-delay: 0.5s; }
-
-    .form-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.45);
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-    .input-wrap { position: relative; }
-    .input-icon {
-      position: absolute;
-      left: 14px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 15px;
-      opacity: 0.4;
-      transition: opacity 0.2s;
-      pointer-events: none;
-    }
-    .form-control {
-      width: 100%;
-      padding: 13px 14px 13px 42px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      font-size: 14px;
-      color: white;
-      outline: none;
-      font-family: inherit;
-      transition: all 0.25s;
-    }
-    .form-control::placeholder { color: rgba(255,255,255,0.2); }
-    .form-control:focus {
-      border-color: rgba(99,102,241,0.6);
-      background: rgba(99,102,241,0.06);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 0 20px rgba(99,102,241,0.08);
-    }
-    .form-control:focus + .input-icon,
-    .input-wrap:focus-within .input-icon { opacity: 0.8; }
-
-    /* Eye btn */
-    .eye-btn {
-      position: absolute;
-      right: 12px; top: 50%;
-      transform: translateY(-50%);
-      background: none; border: none;
-      color: rgba(255,255,255,0.3);
-      cursor: pointer; font-size: 15px;
-      padding: 4px; transition: color 0.2s;
-    }
-    .eye-btn:hover { color: rgba(255,255,255,0.7); }
-
-    /* ── BUTTON ── */
-    .btn-submit {
-      width: 100%;
-      padding: 14px;
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      margin-top: 8px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.25s;
-      box-shadow: 0 8px 24px rgba(99,102,241,0.35);
-      animation: fadeUp 0.6s ease 0.6s both;
-      letter-spacing: 0.2px;
-    }
-    .btn-submit::before {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%; width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-      transition: left 0.5s;
-    }
-    .btn-submit:hover::before { left: 100%; }
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 14px 32px rgba(99,102,241,0.5);
-    }
-    .btn-submit:active { transform: translateY(0); }
-    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
-
-    /* ── ALERT ── */
-    .alert {
-      padding: 11px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 18px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .alert-danger {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.2);
-      color: #fca5a5;
-    }
-    .alert-success {
-      background: rgba(16,185,129,0.1);
-      border: 1px solid rgba(16,185,129,0.2);
-      color: #6ee7b7;
-    }
-
-    /* ── FOOTER ── */
-    .card-footer {
-      margin-top: 20px;
-      text-align: center;
-      animation: fadeUp 0.6s ease 0.7s both;
-    }
-    .card-footer a {
-      font-size: 12.5px;
-      color: rgba(255,255,255,0.3);
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-    .card-footer a:hover { color: #818cf8; }
-
-    /* ── DIVIDER ── */
-    .divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 18px 0;
-      animation: fadeUp 0.6s ease 0.65s both;
-    }
-    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
-    .divider-text { font-size: 11px; color: rgba(255,255,255,0.2); }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Mobile */
-    @media (max-width: 480px) {
-      .login-card { padding: 32px 24px; }
-    }
-
-    /* Tilt effect */
-    .login-card { cursor: default; }
-  </style>
-</head>
-<body>
-
-<!-- 3D Grid Floor -->
-<div class="grid-floor"></div>
-
-<!-- Glow Orbs -->
-<div class="glow glow-1"></div>
-<div class="glow glow-2"></div>
-
-<!-- 3D Floating Cubes -->
-<div class="scene" id="scene"></div>
-
-<!-- Particle Canvas -->
-<canvas id="bg-canvas"></canvas>
-
-<!-- Login Card -->
-<div class="login-wrap">
-  <div class="login-card" id="loginCard">
-
-    <!-- Logo -->
-    <div class="logo">
-      <div class="logo-icon">🎓</div>
-      <div>
-        <div class="logo-text">Placement Analytics</div>
-        <div class="logo-sub">Smart placement management</div>
-      </div>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+      {% if category == 'danger' %}❌{% else %}✅{% endif %}
+      {{ message }}
     </div>
+  {% endfor %}
+{% endwith %}
 
-    <!-- Heading -->
-    <div class="heading">
-      <h1>Welcome back</h1>
-      <p>Sign in to continue to your dashboard</p>
-    </div>
-
-    <!-- Alerts -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">
-          {% if category == 'danger' %}❌{% else %}✅{% endif %}
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endwith %}
-
-    <!-- Form -->
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <div class="input-wrap">
-        <span class="input-icon">✉️</span>
-        <input type="email" id="email" class="form-control"
-               placeholder="you@example.com" autocomplete="email">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <div class="input-wrap">
-        <span class="input-icon">🔒</span>
-        <input type="password" id="password" class="form-control"
-               placeholder="••••••••" autocomplete="current-password">
-        <button class="eye-btn" onclick="togglePwd()" type="button" id="eyeBtn">👁️</button>
-      </div>
-    </div>
-
-    <button class="btn-submit" onclick="submitLogin()" id="loginBtn">
-      Sign In →
-    </button>
-
-    <div class="divider">
-      <div class="divider-line"></div>
-      <span class="divider-text">or</span>
-      <div class="divider-line"></div>
-    </div>
-
-    <div class="card-footer">
-      <a href="{{ url_for('forgot_password') }}">🔑 Forgot your password?</a>
-    </div>
-
+<div class="form-group">
+  <label class="form-label">Email</label>
+  <div class="input-wrap">
+    <span class="input-icon">✉️</span>
+    <input type="email" id="email" class="form-control"
+           placeholder="you@example.com" autocomplete="email">
   </div>
 </div>
 
-<script>
-// ── 3D Tilt on mouse move ──
-const card = document.getElementById('loginCard');
-document.addEventListener('mousemove', e => {
-  const rect = card.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const dx = (e.clientX - cx) / window.innerWidth;
-  const dy = (e.clientY - cy) / window.innerHeight;
-  card.style.transform = `translateY(0) rotateX(${-dy * 8}deg) rotateY(${dx * 8}deg)`;
-});
-document.addEventListener('mouseleave', () => {
-  card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
-});
+<div class="form-group">
+  <label class="form-label">Password</label>
+  <div class="input-wrap">
+    <span class="input-icon">🔒</span>
+    <input type="password" id="password" class="form-control"
+           placeholder="••••••••" autocomplete="current-password">
+    <button class="eye-btn" onclick="togglePwd('password','eyeBtn')" type="button" id="eyeBtn">👁️</button>
+  </div>
+</div>
 
-// ── Floating 3D Cubes ──
-const scene = document.getElementById('scene');
-const cubeData = [
-  { x:8, y:15, size:30, dur:12, delay:0, color:'99,102,241' },
-  { x:85, y:10, size:20, dur:15, delay:-3, color:'16,185,129' },
-  { x:92, y:70, size:35, dur:10, delay:-5, color:'99,102,241' },
-  { x:5, y:75, size:25, dur:18, delay:-7, color:'245,158,11' },
-  { x:50, y:5, size:15, dur:20, delay:-2, color:'16,185,129' },
-  { x:70, y:85, size:28, dur:14, delay:-9, color:'99,102,241' },
-  { x:20, y:90, size:18, dur:16, delay:-4, color:'239,68,68' },
-];
-cubeData.forEach(d => {
-  const cube = document.createElement('div');
-  cube.className = 'cube';
-  cube.style.cssText = `
-    left:${d.x}%;top:${d.y}%;
-    width:${d.size}px;height:${d.size}px;
-    animation-duration:${d.dur}s;
-    animation-delay:${d.delay}s;
-  `;
-  ['front','back','left','right','top','bottom'].forEach(face => {
-    const f = document.createElement('div');
-    f.className = `cube-face ${face}`;
-    f.style.cssText = `
-      width:${d.size}px;height:${d.size}px;
-      border-color:rgba(${d.color},0.3);
-      background:rgba(${d.color},0.04);
-    `;
-    if (face === 'front')  f.style.transform = `translateZ(${d.size/2}px)`;
-    if (face === 'back')   f.style.transform = `rotateY(180deg) translateZ(${d.size/2}px)`;
-    if (face === 'left')   f.style.transform = `rotateY(-90deg) translateZ(${d.size/2}px)`;
-    if (face === 'right')  f.style.transform = `rotateY(90deg) translateZ(${d.size/2}px)`;
-    if (face === 'top')    f.style.transform = `rotateX(90deg) translateZ(${d.size/2}px)`;
-    if (face === 'bottom') f.style.transform = `rotateX(-90deg) translateZ(${d.size/2}px)`;
-    cube.appendChild(f);
-  });
-  scene.appendChild(cube);
-});
+<button class="btn-submit" onclick="submitLogin()" id="loginBtn">
+  Sign In →
+</button>
 
-// ── Particle Canvas ──
-const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
-let W = canvas.width = window.innerWidth;
-let H = canvas.height = window.innerHeight;
-window.addEventListener('resize', () => {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-});
+<div class="divider">
+  <div class="divider-line"></div>
+  <span class="divider-text">or</span>
+  <div class="divider-line"></div>
+</div>
 
-const particles = Array.from({length: 60}, () => ({
-  x: Math.random() * W,
-  y: Math.random() * H,
-  r: Math.random() * 1.5 + 0.3,
-  vx: (Math.random() - 0.5) * 0.3,
-  vy: (Math.random() - 0.5) * 0.3,
-  o: Math.random() * 0.5 + 0.1,
-  c: Math.random() > 0.5 ? '99,102,241' : '16,185,129'
-}));
+<div class="auth-footer">
+  <a href="{{ url_for('forgot_password') }}">🔑 Forgot your password?</a>
+</div>
+{% endblock %}
 
-function drawParticles() {
-  ctx.clearRect(0, 0, W, H);
-  particles.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    if (p.x < 0) p.x = W;
-    if (p.x > W) p.x = 0;
-    if (p.y < 0) p.y = H;
-    if (p.y > H) p.y = 0;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${p.c},${p.o})`;
-    ctx.fill();
-  });
-  // Draw connections
-  particles.forEach((a, i) => {
-    particles.slice(i+1).forEach(b => {
-      const dx = a.x - b.x, dy = a.y - b.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 100) {
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = `rgba(99,102,241,${0.08 * (1 - dist/100)})`;
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
-      }
-    });
-  });
-  requestAnimationFrame(drawParticles);
-}
-drawParticles();
-
-// ── Password toggle ──
-let pwdVisible = false;
-function togglePwd() {
-  pwdVisible = !pwdVisible;
-  document.getElementById('password').type = pwdVisible ? 'text' : 'password';
-  document.getElementById('eyeBtn').textContent = pwdVisible ? '🙈' : '👁️';
-}
-
-// ── Submit ──
+{% block extra_script %}
 function submitLogin() {
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
   if (!email || !password) {
-    card.style.animation = 'none';
-    card.style.transform = 'translateX(-8px)';
-    setTimeout(() => { card.style.transform = 'translateX(8px)'; }, 80);
-    setTimeout(() => { card.style.transform = 'translateX(-5px)'; }, 160);
-    setTimeout(() => { card.style.transform = 'translateX(0)'; }, 240);
+    shakeCard();
     return;
   }
   const btn = document.getElementById('loginBtn');
@@ -586,8 +72,5 @@ function submitLogin() {
   form.submit();
 }
 
-// Enter key
 document.addEventListener('keydown', e => { if (e.key === 'Enter') submitLogin(); });
-</script>
-</body>
-</html>
+{% endblock %}
