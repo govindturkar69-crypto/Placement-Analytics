@@ -867,6 +867,9 @@
         <button onclick="toggleDark()" class="footer-btn" id="darkBtn" data-tooltip="Toggle theme">
           🌙 <span id="darkLabel">Dark</span>
         </button>
+        <a href="{{ url_for('change_password') }}" class="footer-btn" data-tooltip="Change password">
+          🔑
+        </a>
         <a href="{{ url_for('logout') }}" class="footer-btn logout" data-tooltip="Logout">
           🚪 Logout
         </a>

@@ -12,9 +12,14 @@
       </h1>
       <p>Your personal information and placement status</p>
     </div>
-    <a href="{{ url_for('predict') }}" class="btn-add" style="background:linear-gradient(135deg,#6366f1,#10b981)">
-      🤖 ML Predictor
-    </a>
+    <div style="display:flex;gap:10px">
+      <a href="{{ url_for('change_password') }}" class="btn-outline">
+        🔑 Change Password
+      </a>
+      <a href="{{ url_for('predict') }}" class="btn-add" style="background:linear-gradient(135deg,#6366f1,#10b981)">
+        🤖 ML Predictor
+      </a>
+    </div>
   </div>
 </div>
 
