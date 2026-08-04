@@ -584,15 +584,26 @@ def placements():
 def add_placement():
     cur = mysql.connection.cursor()
     if request.method == 'POST':
-        student_id = request.form['student_id']
-        company_id = request.form['company_id']
-        year       = request.form['year']
-        status     = request.form['status']
-        cur.execute(
-            "INSERT INTO placements(student_id,company_id,year,status) VALUES(%s,%s,%s,%s)",
-            (student_id, company_id, year, status)
-        )
-        mysql.connection.commit()
+        try:
+            student_id = int(request.form['student_id'])
+            company_id = int(request.form['company_id'])
+            year       = int(request.form['year'])
+        except ValueError:
+            cur.close()
+            flash('Please select a valid student, company, and year.', 'danger')
+            return redirect(url_for('add_placement'))
+        status = request.form['status']
+        try:
+            cur.execute(
+                "INSERT INTO placements(student_id,company_id,year,status) VALUES(%s,%s,%s,%s)",
+                (student_id, company_id, year, status)
+            )
+            mysql.connection.commit()
+        except pymysql.err.IntegrityError:
+            mysql.connection.rollback()
+            cur.close()
+            flash('That student or company no longer exists.', 'danger')
+            return redirect(url_for('add_placement'))
         cur.execute("SELECT name, email FROM students WHERE student_id=%s", (student_id,))
         student = cur.fetchone()
         cur.execute("SELECT company_name, package FROM companies WHERE company_id=%s", (company_id,))
