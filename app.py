@@ -387,10 +387,15 @@ def edit_student(student_id):
 @admin_required
 def delete_student(student_id):
     cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM students WHERE student_id=%s", (student_id,))
-    mysql.connection.commit()
-    cur.close()
-    flash('Student deleted successfully!', 'success')
+    try:
+        cur.execute("DELETE FROM students WHERE student_id=%s", (student_id,))
+        mysql.connection.commit()
+        flash('Student deleted successfully!', 'success')
+    except pymysql.err.IntegrityError:
+        mysql.connection.rollback()
+        flash('Cannot delete this student — they have placement records. Delete those placements first.', 'danger')
+    finally:
+        cur.close()
     return redirect(url_for('students'))
 
 
@@ -502,10 +507,15 @@ def edit_company(company_id):
 @admin_required
 def delete_company(company_id):
     cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM companies WHERE company_id=%s", (company_id,))
-    mysql.connection.commit()
-    cur.close()
-    flash('Company deleted successfully!', 'success')
+    try:
+        cur.execute("DELETE FROM companies WHERE company_id=%s", (company_id,))
+        mysql.connection.commit()
+        flash('Company deleted successfully!', 'success')
+    except pymysql.err.IntegrityError:
+        mysql.connection.rollback()
+        flash('Cannot delete this company — it has placement records. Delete those placements first.', 'danger')
+    finally:
+        cur.close()
     return redirect(url_for('companies'))
 
 
