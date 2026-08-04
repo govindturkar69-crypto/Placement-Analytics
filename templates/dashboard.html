@@ -14,7 +14,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px">
-        <span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
+        <span style="width:7px;height:7px;background:#10b981;color:#10b981;border-radius:50%;display:inline-block;animation:pulse 2s infinite"></span>
         Live Data
       </div>
     </div>
@@ -160,7 +160,7 @@
       </thead>
       <tbody>
         {% for row in recent %}
-        <tr style="animation:fadeUp 0.3s ease {{ loop.index * 0.05 }}s both">
+        <tr>
           <td>
             <div style="display:flex;align-items:center;gap:9px">
               <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#10b981);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;flex-shrink:0">
@@ -259,10 +259,6 @@
   color:var(--qc);
   transform:translateY(-3px);
   box-shadow:0 8px 20px color-mix(in srgb, var(--qc) 15%, transparent);
-}
-@keyframes pulse {
-  0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.4)}
-  50%{box-shadow:0 0 0 6px rgba(16,185,129,0)}
 }
 </style>
 
