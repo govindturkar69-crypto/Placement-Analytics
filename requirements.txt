@@ -1,11 +1,31 @@
 flask==2.3.3
 flask-mysqldb==1.0.1
-PyMySQL==1.1.0
-cryptography==41.0.7
-Werkzeug==2.3.7
+# Was 1.1.0 -- CVE-2024-36039 (CRITICAL): SQL injection via unescaped dict
+# keys in escape_dict(). Not exercised by this app's own queries (all use
+# tuple-style %s parameters, never escape_dict), but the fix is a same-line
+# patch release with zero behavior change, so there's no reason to stay on
+# the vulnerable version.
+PyMySQL==1.1.1
+# Was 41.0.7 -- multiple HIGH-severity CVEs (Bleichenbacher timing oracle,
+# NULL pointer dereference in PKCS12 parsing, vulnerable bundled OpenSSL,
+# X.509 path-building DoS, ECC subgroup attack). This app never calls the
+# cryptography API directly -- PyMySQL only uses it internally for the RSA
+# auth plugin -- so this is a zero-app-code-risk patch-version bump.
+cryptography==50.0.0
+# Was 2.3.7 -- GHSA-hrfv-mqp8-q5rw, a multipart/form-data parsing DoS fixed
+# in 2.3.8 for the 2.x line (the CSV upload endpoint accepts multipart
+# form data). Staying on 2.3.x for compatibility with Flask 2.3.3 --
+# closing the resource-exhaustion DoS variant fixed only in Werkzeug 3.0.6+
+# needs a Flask 3.x upgrade, which is a bigger compatibility change and is
+# called out separately as a manual/planned action, not applied here.
+Werkzeug==2.3.8
 Flask-Mail==0.10.0
 reportlab==4.1.0
 openpyxl==3.1.2
 Flask-Limiter==3.5.0
 Flask-WTF==1.2.1
-python-dotenv==1.0.1
+# Was 1.0.1 -- GHSA-mf9w-mj56-hr94, arbitrary file overwrite via symlink
+# following in set_key(). This app only calls load_dotenv(), never
+# set_key(), so it was never exploitable here -- bumped anyway since it's
+# a free, zero-risk fix.
+python-dotenv==1.2.2

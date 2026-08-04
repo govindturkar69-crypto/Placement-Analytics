@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pymysql
 pymysql.install_as_MySQLdb()
 from flask_mysqldb import MySQL
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 from app import app, mysql
 
 
