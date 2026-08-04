@@ -1,0 +1,27 @@
+import os
+
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+
+    # Render (and most PaaS) terminate TLS at the edge and forward internally
+    # over plain HTTP -- ProxyFix (wired up in create_app) is what makes
+    # request.is_secure and client IPs correct despite that.
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB request body cap
+    SEND_FILE_MAX_AGE_DEFAULT = 31536000
+    PERMANENT_SESSION_LIFETIME = 1800
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+
+    MYSQL_HOST = os.environ.get('MYSQL_HOST')
+    MYSQL_USER = os.environ.get('MYSQL_USER')
+    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+    MYSQL_PORT = int(os.environ.get('MYSQL_PORT', 3306))
+    MYSQL_DB = os.environ.get('MYSQL_DB')
+
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')

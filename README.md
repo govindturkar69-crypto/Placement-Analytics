@@ -172,36 +172,40 @@ Clone the repo and follow [Local Setup](#local-setup) below to run the app again
 
 ```
 placement-analytics/
-├── app.py                       # Flask app: routes, auth, business logic
-├── database.sql                 # Schema + sample seed data
+├── app.py                        # Entry point -- Render runs this directly
+├── database.sql                  # Schema + sample seed data
 ├── requirements.txt
 ├── README.md
 │
-├── templates/
-│   ├── base.html                 # Shared layout for authenticated pages
-│   ├── auth_base.html            # Shared layout for login/forgot/reset
-│   ├── login.html
-│   ├── forgot_password.html
-│   ├── reset_password.html
-│   ├── dashboard.html
-│   ├── students.html / add_student.html / edit_student.html
-│   ├── companies.html / add_company.html / edit_company.html
-│   ├── placements.html / add_placement.html
-│   ├── analytics.html
-│   ├── predict.html
-│   ├── profile.html
-│   ├── upload_csv.html
-│   ├── 404.html / 500.html
+├── placement_analytics/          # The application package
+│   ├── __init__.py                # create_app() factory
+│   ├── config.py                  # Config class, reads env vars
+│   ├── extensions.py              # mysql / mail / limiter / csrf instances
+│   ├── decorators.py              # login_required, admin_required
+│   ├── utils.py                   # safe_redirect_back, any_blank, excel_safe
+│   ├── errors.py                  # 404/500/429/413/CSRF error handlers
+│   ├── routes/                    # One module per resource, registered on the app directly (no blueprints -- keeps every endpoint name and URL exactly as-is)
+│   │   ├── auth.py                 # index, login, logout, forgot/reset password
+│   │   ├── dashboard.py
+│   │   ├── students.py             # students, add/edit/delete, CSV upload
+│   │   ├── companies.py
+│   │   ├── placements.py
+│   │   ├── analytics.py
+│   │   ├── predict.py
+│   │   ├── reports.py              # PDF + Excel export
+│   │   └── profile.py              # profile, /api/stats
+│   ├── templates/                  # base.html, auth_base.html, and all pages
+│   └── static/
 │
 ├── scripts/
-│   └── init_passwords.py        # One-time helper: hash seed-data passwords
+│   └── init_passwords.py         # One-time helper: hash seed-data passwords
 │
-├── tests/                        # unittest suite (mocked DB, no live DB needed)
+├── tests/                         # unittest suite (mocked DB, no live DB needed)
 │
 ├── .github/workflows/
-│   └── tests.yml                 # CI: runs the test suite on push/PR
+│   └── tests.yml                  # CI: runs the test suite on push/PR
 │
-└── screenshots/                  # Images referenced above
+└── screenshots/                   # Images referenced above
 ```
 
 ---
