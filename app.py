@@ -371,6 +371,9 @@ def add_student():
         except ValueError:
             flash('CGPA must be a number.', 'danger')
             return render_template('add_student.html', user_name=session['user_name'])
+        if len(request.form.get('password', '')) < 6:
+            flash('Password must be at least 6 characters.', 'danger')
+            return render_template('add_student.html', user_name=session['user_name'])
         password = generate_password_hash(request.form['password'])
         cur = mysql.connection.cursor()
         try:
@@ -862,6 +865,17 @@ def download_report():
 
 
 # ── EXCEL EXPORT ──────────────────────────────────────────────────────────────
+def excel_safe(val):
+    """Neutralize formula-injection payloads (CWE-1236) before writing to a cell.
+
+    name/skills/company_name reach here from admin input and bulk CSV upload.
+    A value like =cmd|'/c calc'!A1 sits in the DB as plain text but becomes a
+    live formula the moment someone opens the exported .xlsx in Excel.
+    """
+    if isinstance(val, str) and val[:1] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + val
+    return val
+
 @app.route('/export_excel')
 @admin_required
 def export_excel():
@@ -890,18 +904,18 @@ def export_excel():
     mh(ws1, h1, '2563EB')
     for ri, row in enumerate(pls, 2):
         for ci, val in enumerate(row, 1):
-            cell = ws1.cell(row=ri, column=ci, value=val); cell.alignment = center
+            cell = ws1.cell(row=ri, column=ci, value=excel_safe(val)); cell.alignment = center
             if ri % 2 == 0: cell.fill = PatternFill(start_color='EFF6FF', end_color='EFF6FF', fill_type='solid')
     for col in range(1, len(h1)+1): ws1.column_dimensions[get_column_letter(col)].width = 18
     ws2 = wb.create_sheet('Students')
     mh(ws2, ['Name','Email','Branch','CGPA','Skills'], '1E293B')
     for ri, row in enumerate(sts, 2):
-        for ci, val in enumerate(row, 1): ws2.cell(row=ri, column=ci, value=val).alignment = center
+        for ci, val in enumerate(row, 1): ws2.cell(row=ri, column=ci, value=excel_safe(val)).alignment = center
     for col in range(1, 6): ws2.column_dimensions[get_column_letter(col)].width = 20
     ws3 = wb.create_sheet('Companies')
     mh(ws3, ['Company Name','Package (LPA)','Required Skills','Visit Date'], '10B981')
     for ri, row in enumerate(cos, 2):
-        for ci, val in enumerate(row, 1): ws3.cell(row=ri, column=ci, value=str(val) if val else '').alignment = center
+        for ci, val in enumerate(row, 1): ws3.cell(row=ri, column=ci, value=excel_safe(str(val) if val else '')).alignment = center
     for col in range(1, 5): ws3.column_dimensions[get_column_letter(col)].width = 22
     out = BytesIO(); wb.save(out); out.seek(0)
     resp = make_response(out.getvalue())
