@@ -33,7 +33,7 @@ def register(app):
             user = cur.fetchone()
             cur.close()
             if user and check_password_hash(user[3], password):
-                session.permanent    = True
+                session.permanent    = request.form.get('remember_me') == 'on'
                 session['logged_in'] = True
                 session['user_id']   = user[0]
                 session['user_name'] = user[1]

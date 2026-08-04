@@ -14,6 +14,12 @@ os.environ.setdefault('MYSQL_DB', 'test')
 
 import app as app_module  # noqa: E402
 
+# Limiter.enabled is cached on the instance the first time init_app() runs
+# (which already happened at import time above), so toggling
+# app.config['RATELIMIT_ENABLED'] afterwards has no effect -- the instance
+# attribute has to be flipped directly.
+app_module.limiter.enabled = False
+
 
 def mock_connection(execute_side_effect=None):
     """A fake MySQL connection whose cursor.execute() can be made to raise."""
