@@ -406,6 +406,10 @@ def edit_student(student_id):
             flash('CGPA must be a number.', 'danger')
             return redirect(url_for('edit_student', student_id=student_id))
         try:
+            cur.execute("SELECT 1 FROM students WHERE student_id=%s", (student_id,))
+            if not cur.fetchone():
+                flash('Student not found — they may have already been deleted.', 'danger')
+                return redirect(url_for('students'))
             cur.execute("""
                 UPDATE students SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s
                 WHERE student_id=%s
@@ -423,6 +427,9 @@ def edit_student(student_id):
     cur.execute("SELECT * FROM students WHERE student_id=%s", (student_id,))
     student = cur.fetchone()
     cur.close()
+    if not student:
+        flash('Student not found.', 'danger')
+        return redirect(url_for('students'))
     return render_template('edit_student.html', student=student, user_name=session['user_name'])
 
 
@@ -531,6 +538,11 @@ def edit_company(company_id):
             cur.close()
             flash('Package must be a number.', 'danger')
             return redirect(url_for('edit_company', company_id=company_id))
+        cur.execute("SELECT 1 FROM companies WHERE company_id=%s", (company_id,))
+        if not cur.fetchone():
+            cur.close()
+            flash('Company not found — it may have already been deleted.', 'danger')
+            return redirect(url_for('companies'))
         cur.execute("""
             UPDATE companies SET company_name=%s, package=%s, required_skills=%s, visit_date=%s
             WHERE company_id=%s
@@ -543,6 +555,9 @@ def edit_company(company_id):
     cur.execute("SELECT * FROM companies WHERE company_id=%s", (company_id,))
     company = cur.fetchone()
     cur.close()
+    if not company:
+        flash('Company not found.', 'danger')
+        return redirect(url_for('companies'))
     return render_template('edit_company.html', company=company, user_name=session['user_name'])
 
 
