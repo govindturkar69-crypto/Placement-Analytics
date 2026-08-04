@@ -5,9 +5,11 @@ load_dotenv()
 import pymysql
 pymysql.install_as_MySQLdb()
 from flask_mysqldb import MySQL
+from werkzeug.middleware.proxy_fix import ProxyFix
 import time
 from collections import Counter
 from functools import wraps
+from urllib.parse import urlparse
 from flask_mail import Mail, Message
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -29,6 +31,12 @@ from openpyxl.utils import get_column_letter
 
 # ── APP CONFIG ───────────────────────────────────────────────────────────────
 app = Flask(__name__, static_folder='static', static_url_path='/static')
+# Render (and most PaaS) terminate TLS at the edge and forward internally over
+# plain HTTP -- without this, request.remote_addr is always the proxy's IP
+# (breaking per-client rate limiting) and url_for(_external=True) generates
+# http:// links instead of https://.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+app.config['MAX_CONTENT_LENGTH']         = 16 * 1024 * 1024  # 16MB request body cap
 app.config['SEND_FILE_MAX_AGE_DEFAULT']  = 31536000
 app.config['PERMANENT_SESSION_LIFETIME'] = 1800
 app.config['SESSION_COOKIE_HTTPONLY']    = True
@@ -74,6 +82,8 @@ def after_request(response):
     response.headers['X-Frame-Options']         = 'SAMEORIGIN'
     response.headers['X-XSS-Protection']        = '1; mode=block'
     response.headers['Referrer-Policy']         = 'strict-origin-when-cross-origin'
+    if request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     # Cache
     if request.endpoint == 'static':
         response.headers['Cache-Control'] = 'public, max-age=31536000'
@@ -97,6 +107,19 @@ def after_request(response):
 
 
 # ── ERROR HANDLERS ────────────────────────────────────────────────────────────
+def safe_redirect_back(default_endpoint):
+    """Redirect to the referring page only if it's on this site.
+
+    request.referrer is attacker-controlled (it's just a header the client
+    sends), so blindly trusting it -- especially in the CSRF error handler,
+    which fires exactly when a cross-site request was blocked -- would bounce
+    the user straight to whatever site sent the forged request.
+    """
+    ref = request.referrer
+    if ref and urlparse(ref).netloc == urlparse(request.host_url).netloc:
+        return redirect(ref)
+    return redirect(url_for(default_endpoint))
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404
@@ -110,10 +133,15 @@ def rate_limited(e):
     flash('Too many attempts! Please wait a minute and try again.', 'danger')
     return redirect(url_for('login'))
 
+@app.errorhandler(413)
+def too_large(e):
+    flash('That file is too large. Please keep uploads under 16MB.', 'danger')
+    return safe_redirect_back('dashboard')
+
 @app.errorhandler(CSRFError)
 def csrf_error(e):
     flash('Your session expired. Please try that again.', 'danger')
-    return redirect(request.referrer or url_for('login'))
+    return safe_redirect_back('login')
 
 
 # ── AUTH DECORATORS ──────────────────────────────────────────────────────────
@@ -345,15 +373,21 @@ def add_student():
             return render_template('add_student.html', user_name=session['user_name'])
         password = generate_password_hash(request.form['password'])
         cur = mysql.connection.cursor()
-        cur.execute(
-            "INSERT INTO students(name,email,branch,cgpa,skills,password) VALUES(%s,%s,%s,%s,%s,%s)",
-            (request.form['name'], request.form['email'], request.form['branch'],
-             cgpa, request.form['skills'], password)
-        )
-        mysql.connection.commit()
-        cur.close()
-        flash('Student added successfully!', 'success')
-        return redirect(url_for('students'))
+        try:
+            cur.execute(
+                "INSERT INTO students(name,email,branch,cgpa,skills,password) VALUES(%s,%s,%s,%s,%s,%s)",
+                (request.form['name'], request.form['email'], request.form['branch'],
+                 cgpa, request.form['skills'], password)
+            )
+            mysql.connection.commit()
+            flash('Student added successfully!', 'success')
+            return redirect(url_for('students'))
+        except pymysql.err.IntegrityError:
+            mysql.connection.rollback()
+            flash('That email is already registered to another student.', 'danger')
+            return render_template('add_student.html', user_name=session['user_name'])
+        finally:
+            cur.close()
     return render_template('add_student.html', user_name=session['user_name'])
 
 
@@ -368,15 +402,21 @@ def edit_student(student_id):
             cur.close()
             flash('CGPA must be a number.', 'danger')
             return redirect(url_for('edit_student', student_id=student_id))
-        cur.execute("""
-            UPDATE students SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s
-            WHERE student_id=%s
-        """, (request.form['name'], request.form['email'], request.form['branch'],
-              cgpa, request.form['skills'], student_id))
-        mysql.connection.commit()
-        cur.close()
-        flash('Student updated successfully!', 'success')
-        return redirect(url_for('students'))
+        try:
+            cur.execute("""
+                UPDATE students SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s
+                WHERE student_id=%s
+            """, (request.form['name'], request.form['email'], request.form['branch'],
+                  cgpa, request.form['skills'], student_id))
+            mysql.connection.commit()
+            flash('Student updated successfully!', 'success')
+            return redirect(url_for('students'))
+        except pymysql.err.IntegrityError:
+            mysql.connection.rollback()
+            flash('That email is already registered to another student.', 'danger')
+            return redirect(url_for('edit_student', student_id=student_id))
+        finally:
+            cur.close()
     cur.execute("SELECT * FROM students WHERE student_id=%s", (student_id,))
     student = cur.fetchone()
     cur.close()
