@@ -1,4 +1,5 @@
-from flask import render_template, session, jsonify
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import mysql
 from ..decorators import login_required
@@ -20,6 +21,41 @@ def register(app):
         cur.close()
         return render_template('profile.html',
             student=student, my_placements=my_placements, user_name=session['user_name'])
+
+    @app.route('/change_password', methods=['GET', 'POST'])
+    @login_required
+    def change_password():
+        if request.method == 'POST':
+            current_password = request.form.get('current_password', '')
+            new_password     = request.form.get('new_password', '')
+            confirm_password = request.form.get('confirm_password', '')
+
+            cur = mysql.connection.cursor()
+            cur.execute("SELECT password FROM students WHERE student_id=%s", (session['user_id'],))
+            row = cur.fetchone()
+
+            if not row or not check_password_hash(row[0], current_password):
+                cur.close()
+                flash('Current password is incorrect.', 'danger')
+                return render_template('change_password.html', user_name=session['user_name'])
+
+            if len(new_password) < 6:
+                cur.close()
+                flash('New password must be at least 6 characters.', 'danger')
+                return render_template('change_password.html', user_name=session['user_name'])
+
+            if new_password != confirm_password:
+                cur.close()
+                flash('New passwords do not match.', 'danger')
+                return render_template('change_password.html', user_name=session['user_name'])
+
+            hashed = generate_password_hash(new_password)
+            cur.execute("UPDATE students SET password=%s WHERE student_id=%s", (hashed, session['user_id']))
+            mysql.connection.commit()
+            cur.close()
+            flash('Password changed successfully!', 'success')
+            return redirect(url_for('profile'))
+        return render_template('change_password.html', user_name=session['user_name'])
 
     @app.route('/api/stats')
     @login_required
