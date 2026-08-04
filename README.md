@@ -167,16 +167,9 @@ Our advanced **6-factor weighted scoring model** predicts placement chances with
 
 ---
 
-## 🔐 Demo Credentials
+## 🔐 Try It Yourself
 
-> ⚡ Try the live app — no signup needed!
-
-| Role | Email | Password | Access |
-|:---|:---|:---|:---|
-| 👑 **Admin** | `admin@placement.com` | `admin123` | Full access |
-| 🎓 **Student** | `govind@example.com` | `admin123` | Limited access |
-
-🔗 **[Launch Live App →](https://placement-analytics.onrender.com)**
+Clone the repo and follow [Local Setup](#️-local-setup) below to run the app against your own database with your own credentials. Live demo credentials aren't published here — publishing a working admin login for a real deployment is a standing invitation to anyone reading this file.
 
 ---
 

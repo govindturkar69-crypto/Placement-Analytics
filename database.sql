@@ -37,6 +37,17 @@ CREATE TABLE IF NOT EXISTS placements (
     FOREIGN KEY (company_id) REFERENCES companies(company_id) ON DELETE CASCADE
 );
 
+-- Password reset tokens live here instead of an in-memory dict so links
+-- survive an app restart/redeploy (Render's free tier sleeps and restarts
+-- on inactivity, which would otherwise silently invalidate every
+-- outstanding reset link).
+CREATE TABLE IF NOT EXISTS password_resets (
+    token VARCHAR(64) PRIMARY KEY,
+    email VARCHAR(100) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Sample Data (passwords are plain text here — run `python scripts/init_passwords.py` after import)
 INSERT INTO students (name, email, branch, cgpa, skills, password, role) VALUES
 ('Admin User', 'admin@placement.com', 'CSE', 9.0, 'Python, SQL, Management', 'admin123', 'admin'),

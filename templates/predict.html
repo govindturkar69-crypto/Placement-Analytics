@@ -52,7 +52,7 @@
     <!-- CGPA with visual slider -->
     <div class="form-group">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
-        <label style="margin-bottom:0;font-size:13px;font-weight:600;color:var(--text-2)">CGPA (out of 10)</label>
+        <label for="cgpa" style="margin-bottom:0;font-size:13px;font-weight:600;color:var(--text-2)">CGPA (out of 10)</label>
         <span id="cgpaDisplay" style="font-size:16px;font-weight:800;color:#6366f1">—</span>
       </div>
       <input type="number" id="cgpa" class="form-control"
@@ -64,7 +64,7 @@
     </div>
 
     <div class="form-group">
-      <label style="font-size:13px;font-weight:600;color:var(--text-2)">Skills (comma separated)</label>
+      <label for="skills" style="font-size:13px;font-weight:600;color:var(--text-2)">Skills (comma separated)</label>
       <input type="text" id="skills" class="form-control"
              placeholder="Python, Java, SQL, React, DSA"
              oninput="updateSkillCount(this.value)">
@@ -75,7 +75,7 @@
     </div>
 
     <div class="form-group">
-      <label style="font-size:13px;font-weight:600;color:var(--text-2)">Branch</label>
+      <label for="branch" style="font-size:13px;font-weight:600;color:var(--text-2)">Branch</label>
       <select id="branch" class="form-control">
         <option value="CSE">🖥️ CSE — Computer Science</option>
         <option value="IT">💻 IT — Information Technology</option>
@@ -88,7 +88,7 @@
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="form-group" style="margin-bottom:0">
-        <label style="font-size:13px;font-weight:600;color:var(--text-2)">Backlogs</label>
+        <label for="backlogs" style="font-size:13px;font-weight:600;color:var(--text-2)">Backlogs</label>
         <select id="backlogs" class="form-control">
           <option value="0">0 ✅ None</option>
           <option value="1">1 backlog</option>
@@ -98,7 +98,7 @@
         </select>
       </div>
       <div class="form-group" style="margin-bottom:0">
-        <label style="font-size:13px;font-weight:600;color:var(--text-2)">Projects</label>
+        <label for="projects" style="font-size:13px;font-weight:600;color:var(--text-2)">Projects</label>
         <select id="projects" class="form-control">
           <option value="0">0 projects</option>
           <option value="1">1 project</option>

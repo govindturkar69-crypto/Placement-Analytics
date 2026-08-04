@@ -6,7 +6,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 from flask_mysqldb import MySQL
 from werkzeug.middleware.proxy_fix import ProxyFix
-import time
+from datetime import datetime, timedelta
 from collections import Counter
 from functools import wraps
 from urllib.parse import urlparse
@@ -70,9 +70,6 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
-# ── RESET TOKENS (with expiry) ───────────────────────────────────────────────
-reset_tokens = {}  # {token: {'email': str, 'expires': float}}
-
 
 # ── AFTER REQUEST — Security headers + Gzip ──────────────────────────────────
 @app.after_request
@@ -119,6 +116,11 @@ def safe_redirect_back(default_endpoint):
     if ref and urlparse(ref).netloc == urlparse(request.host_url).netloc:
         return redirect(ref)
     return redirect(url_for(default_endpoint))
+
+
+def any_blank(*values):
+    """True if any of the given form values is missing, empty, or whitespace-only."""
+    return any(not (v or '').strip() for v in values)
 
 @app.errorhandler(404)
 def not_found(e):
@@ -216,13 +218,16 @@ def forgot_password():
         cur   = mysql.connection.cursor()
         cur.execute("SELECT student_id, name FROM students WHERE email=%s", (email,))
         user  = cur.fetchone()
-        cur.close()
         if user:
+            # Opportunistic cleanup so this table doesn't grow unbounded.
+            cur.execute("DELETE FROM password_resets WHERE expires_at < %s", (datetime.now(),))
             token = secrets.token_urlsafe(32)
-            reset_tokens[token] = {
-                'email':   email,
-                'expires': time.time() + 3600  # 1 hour
-            }
+            expires_at = datetime.now() + timedelta(hours=1)
+            cur.execute(
+                "INSERT INTO password_resets(token, email, expires_at) VALUES(%s, %s, %s)",
+                (token, email, expires_at)
+            )
+            mysql.connection.commit()
             reset_link = url_for('reset_password', token=token, _external=True)
             try:
                 msg = Message(
@@ -242,6 +247,7 @@ Regards, Placement Analytics Team'''
                 mail.send(msg)
             except Exception:
                 pass
+        cur.close()
         # Don't reveal whether email exists (security best practice)
         flash('If that email exists, a reset link has been sent.', 'success')
     return render_template('forgot_password.html')
@@ -249,28 +255,34 @@ Regards, Placement Analytics Team'''
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    if token not in reset_tokens:
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT email, expires_at FROM password_resets WHERE token=%s", (token,))
+    row = cur.fetchone()
+    if not row:
+        cur.close()
         flash('Invalid or expired link!', 'danger')
         return redirect(url_for('login'))
-    token_data = reset_tokens[token]
-    if time.time() > token_data['expires']:
-        del reset_tokens[token]
+    email, expires_at = row
+    if datetime.now() > expires_at:
+        cur.execute("DELETE FROM password_resets WHERE token=%s", (token,))
+        mysql.connection.commit()
+        cur.close()
         flash('Reset link expired! Please request a new one.', 'danger')
         return redirect(url_for('forgot_password'))
     if request.method == 'POST':
         new_password = request.form.get('password', '')
         if len(new_password) < 6:
+            cur.close()
             flash('Password must be at least 6 characters.', 'danger')
             return render_template('reset_password.html', token=token)
-        email  = token_data['email']
         hashed = generate_password_hash(new_password)
-        cur    = mysql.connection.cursor()
         cur.execute("UPDATE students SET password=%s WHERE email=%s", (hashed, email))
+        cur.execute("DELETE FROM password_resets WHERE token=%s", (token,))
         mysql.connection.commit()
         cur.close()
-        del reset_tokens[token]
         flash('Password reset successful! Please login.', 'success')
         return redirect(url_for('login'))
+    cur.close()
     return render_template('reset_password.html', token=token)
 
 
@@ -371,6 +383,9 @@ def add_student():
         except ValueError:
             flash('CGPA must be a number.', 'danger')
             return render_template('add_student.html', user_name=session['user_name'])
+        if any_blank(request.form.get('name'), request.form.get('email'), request.form.get('branch')):
+            flash('Name, email, and branch are required.', 'danger')
+            return render_template('add_student.html', user_name=session['user_name'])
         if len(request.form.get('password', '')) < 6:
             flash('Password must be at least 6 characters.', 'danger')
             return render_template('add_student.html', user_name=session['user_name'])
@@ -404,6 +419,10 @@ def edit_student(student_id):
         except ValueError:
             cur.close()
             flash('CGPA must be a number.', 'danger')
+            return redirect(url_for('edit_student', student_id=student_id))
+        if any_blank(request.form.get('name'), request.form.get('email'), request.form.get('branch')):
+            cur.close()
+            flash('Name, email, and branch are required.', 'danger')
             return redirect(url_for('edit_student', student_id=student_id))
         try:
             cur.execute("SELECT 1 FROM students WHERE student_id=%s", (student_id,))
@@ -473,6 +492,10 @@ def upload_csv():
                 return redirect(url_for('upload_csv'))
             cur = mysql.connection.cursor()
             success = errors = 0
+            # One commit for the whole batch instead of one per row -- MySQL/InnoDB
+            # only rolls back the failed statement itself, not the rows already
+            # inserted earlier in the same transaction, so batching this is safe
+            # and turns a 500-row upload from 500 round-trips into 1.
             for row in rows:
                 try:
                     cur.execute("""
@@ -481,10 +504,10 @@ def upload_csv():
                     """, (str(row['name']), str(row['email']), str(row['branch']),
                           float(row['cgpa']), str(row['skills']),
                           generate_password_hash(str(row['password']))))
-                    mysql.connection.commit()
                     success += 1
                 except Exception:
                     errors += 1
+            mysql.connection.commit()
             cur.close()
             flash(f'✅ {success} students added! ❌ {errors} errors skipped.', 'success')
             return redirect(url_for('students'))
@@ -514,6 +537,9 @@ def add_company():
         except ValueError:
             flash('Package must be a number.', 'danger')
             return render_template('add_company.html', user_name=session['user_name'])
+        if any_blank(request.form.get('company_name')):
+            flash('Company name is required.', 'danger')
+            return render_template('add_company.html', user_name=session['user_name'])
         cur = mysql.connection.cursor()
         cur.execute(
             "INSERT INTO companies(company_name,package,required_skills,visit_date) VALUES(%s,%s,%s,%s)",
@@ -537,6 +563,10 @@ def edit_company(company_id):
         except ValueError:
             cur.close()
             flash('Package must be a number.', 'danger')
+            return redirect(url_for('edit_company', company_id=company_id))
+        if any_blank(request.form.get('company_name')):
+            cur.close()
+            flash('Company name is required.', 'danger')
             return redirect(url_for('edit_company', company_id=company_id))
         cur.execute("SELECT 1 FROM companies WHERE company_id=%s", (company_id,))
         if not cur.fetchone():
@@ -658,8 +688,12 @@ def delete_placement(placement_id):
     cur = mysql.connection.cursor()
     cur.execute("DELETE FROM placements WHERE placement_id=%s", (placement_id,))
     mysql.connection.commit()
+    deleted = cur.rowcount
     cur.close()
-    flash('Placement deleted successfully!', 'success')
+    if deleted:
+        flash('Placement deleted successfully!', 'success')
+    else:
+        flash('Placement not found — it may have already been deleted.', 'danger')
     return redirect(url_for('placements'))
 
 
