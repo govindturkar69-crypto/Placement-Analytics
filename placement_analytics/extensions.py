@@ -7,14 +7,12 @@ import pymysql
 pymysql.install_as_MySQLdb()
 
 from flask_mysqldb import MySQL
-from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf import CSRFProtect
 from authlib.integrations.flask_client import OAuth
 
 mysql = MySQL()
-mail = Mail()
 csrf = CSRFProtect()
 limiter = Limiter(
     key_func=get_remote_address,

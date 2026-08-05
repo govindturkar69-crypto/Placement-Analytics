@@ -20,12 +20,6 @@ class Config:
     MYSQL_PORT = int(os.environ.get('MYSQL_PORT', 3306))
     MYSQL_DB = os.environ.get('MYSQL_DB')
 
-    MAIL_SERVER = 'smtp.gmail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-
     # "Continue with Google" login. Left unset in dev/test -- the button
     # still renders, the route just declines with a friendly message
     # instead of calling out to Google with empty credentials.

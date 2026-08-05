@@ -1,14 +1,13 @@
 import logging
-import os
 import re
 import secrets
 from datetime import datetime, timedelta
 
 from flask import render_template, request, redirect, url_for, session, flash
-from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from ..extensions import mysql, mail, limiter, oauth
+from ..email import send_email
+from ..extensions import mysql, limiter, oauth
 
 logger = logging.getLogger(__name__)
 
@@ -43,13 +42,7 @@ def _mask_email(email):
 
 
 def _send_otp_email(email, name, otp):
-    try:
-        msg = Message(
-            'Your Password Reset Code – Placement Analytics',
-            sender=os.environ.get('MAIL_USERNAME'),
-            recipients=[email]
-        )
-        msg.body = f'''Hello {name},
+    body = f'''Hello {name},
 
 Your password reset code is: {otp}
 
@@ -57,9 +50,7 @@ This code expires in {OTP_EXPIRY_MINUTES} minutes and can only be used once.
 If you did not request this, ignore this email -- your password will not be changed.
 
 Regards, Placement Analytics Team'''
-        mail.send(msg)
-    except Exception:
-        logger.exception('Failed to send password reset OTP email to %s', _mask_email(email))
+    send_email(email, 'Your Password Reset Code – Placement Analytics', body)
 
 
 def _issue_otp(email):

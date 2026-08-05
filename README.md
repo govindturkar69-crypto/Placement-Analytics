@@ -113,7 +113,7 @@ The result includes an overall chance percentage, a per-factor score breakdown, 
 | Auth & security | Werkzeug, Flask-WTF, Flask-Limiter |
 | PDF reports | ReportLab |
 | Excel export | OpenPyXL |
-| Email | Flask-Mail (SMTP) |
+| Email | Resend (HTTPS API) |
 | Testing | `unittest`, GitHub Actions CI |
 | Deployment | Render |
 
@@ -264,6 +264,23 @@ Google sign-in is optional — if `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` ar
 4. Restart the app.
 
 Google login only works for an email that already matches an existing student/admin record — it's an alternate way to sign in to an account, not a self-registration flow. An unmatched email is denied with a message pointing the user to their placement cell admin.
+
+---
+
+## Email Delivery Setup
+
+Outbound email (OTP codes for password reset, placement confirmation notices) goes through [Resend](https://resend.com)'s HTTPS API rather than SMTP — Render's network blocks raw outbound SMTP connections (`smtplib` fails with `OSError: [Errno 101] Network is unreachable` regardless of how correct the mail credentials are), so sending over HTTPS is what actually works there.
+
+1. Sign up at [resend.com](https://resend.com) and grab an API key from the dashboard.
+2. Add to `.env` (local) or your host's environment variables (production):
+   ```
+   RESEND_API_KEY=your_api_key
+   RESEND_FROM_EMAIL=Placement Analytics <onboarding@resend.dev>
+   ```
+   `RESEND_FROM_EMAIL` defaults to Resend's shared sandbox sender if unset — check Resend's dashboard for any current restrictions on that address, or verify your own sending domain there for production use.
+3. Restart the app.
+
+If `RESEND_API_KEY` isn't set, emails are silently skipped (logged as a warning) rather than raising — OTP requests and placement notifications still complete normally, they just won't deliver.
 
 ---
 

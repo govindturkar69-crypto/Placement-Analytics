@@ -48,7 +48,7 @@ class ForgotPasswordTests(OtpFlowTestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Test User')
         with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
-             patch.object(app_module.mail, 'send') as mock_send:
+             patch('placement_analytics.routes.auth.send_email') as mock_send:
             response = self.client.post('/forgot_password', data={'email': 'test@example.com'})
 
         self.assertEqual(response.status_code, 302)
@@ -65,7 +65,7 @@ class ForgotPasswordTests(OtpFlowTestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = None
         with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
-             patch.object(app_module.mail, 'send') as mock_send:
+             patch('placement_analytics.routes.auth.send_email') as mock_send:
             response = self.client.post('/forgot_password', data={'email': 'nobody@example.com'})
 
         self.assertEqual(response.status_code, 302)
@@ -170,7 +170,7 @@ class ResendOtpTests(OtpFlowTestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Test User')
         with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
-             patch.object(app_module.mail, 'send') as mock_send:
+             patch('placement_analytics.routes.auth.send_email') as mock_send:
             response = self.client.post('/resend_otp')
 
         self.assertEqual(response.status_code, 302)
@@ -263,7 +263,7 @@ class FullOtpJourneyTests(OtpFlowTestCase):
         otp_hash = generate_password_hash(fixed_otp)
 
         with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
-             patch.object(app_module.mail, 'send'), \
+             patch('placement_analytics.routes.auth.send_email'), \
              patch('placement_analytics.routes.auth._generate_otp', return_value=fixed_otp):
             cursor.fetchone.return_value = (1, 'Test User')
             step1 = self.client.post('/forgot_password', data={'email': 'test@example.com'})
