@@ -29,3 +29,6 @@ Flask-WTF==1.2.1
 # set_key(), so it was never exploitable here -- bumped anyway since it's
 # a free, zero-risk fix.
 python-dotenv==1.2.2
+# OAuth2/OIDC client for "Continue with Google" login. No known vulnerabilities
+# against 1.7.2 per PyPI's published vulnerability metadata (checked at pin time).
+Authlib==1.7.2

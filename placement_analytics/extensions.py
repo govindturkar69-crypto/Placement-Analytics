@@ -11,6 +11,7 @@ from flask_mail import Mail
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_wtf import CSRFProtect
+from authlib.integrations.flask_client import OAuth
 
 mysql = MySQL()
 mail = Mail()
@@ -20,3 +21,4 @@ limiter = Limiter(
     default_limits=["300 per day", "60 per hour"],
     storage_uri="memory://",
 )
+oauth = OAuth()
