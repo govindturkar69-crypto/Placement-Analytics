@@ -26,12 +26,24 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
 
+    /* Native cross-document page transition (Chromium) -- gives the
+       login <-> forgot-password navigation a soft fade/slide instead of
+       a hard cut. No-op, not an error, in browsers that don't support it. */
+    @view-transition {
+      navigation: auto;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
+      animation: pageFadeIn 0.4s var(--ease) both;
+    }
+    @keyframes pageFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
 
     /* ── LAYOUT ── */
@@ -78,22 +90,8 @@
       max-width: 520px;
     }
 
-    /* Background particles -- static positions, slow independent drift, no JS/canvas */
-    .particle-field { position: absolute; inset: -80px; z-index: 1; pointer-events: none; }
-    .particle {
-      position: absolute;
-      width: 3px; height: 3px;
-      border-radius: 50%;
-      background: var(--accent);
-      opacity: 0.35;
-      animation: particleDrift linear infinite;
-    }
-    @keyframes particleDrift {
-      0%, 100% { transform: translate(0, 0); }
-      50% { transform: translate(14px, -18px); }
-    }
-
-    /* Glass card used for floating profile cards, chart cards, resume card */
+    /* Glass card used for floating profile cards, chart cards, resume card.
+       Single entrance transition only -- no continuous bob/float loop. */
     .float-card {
       position: absolute;
       background: rgba(255, 255, 255, 0.045);
@@ -102,11 +100,7 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-      animation: floatY 7s ease-in-out infinite, cardIn 0.7s var(--ease) both;
-    }
-    @keyframes floatY {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      animation: cardIn 0.6s var(--ease) both;
     }
     @keyframes cardIn {
       from { opacity: 0; transform: translateY(24px) scale(0.94); }
@@ -135,20 +129,20 @@
     }
     .profile-card .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--success); }
 
-    /* Resume scan card */
+    /* Resume scan card -- the scan beam sweeps once on entrance, then rests
+       (a badge takes over to signal "done" instead of looping forever). */
     .scan-card { width: 130px; padding: 16px 14px; z-index: 3; overflow: hidden; }
     .scan-card .doc-line { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.12); margin-bottom: 7px; }
     .scan-card .doc-line:nth-child(3) { width: 70%; }
     .scan-beam {
       position: absolute;
-      left: 0; right: 0; height: 26px;
+      left: 0; right: 0; height: 26px; top: -30%;
       background: linear-gradient(180deg, transparent, rgba(6, 182, 212, 0.28), transparent);
-      animation: scanSweep 3.2s ease-in-out infinite;
+      animation: scanSweep 1.1s var(--ease) 0.5s both;
     }
     @keyframes scanSweep {
-      0%   { top: -10%; }
-      50%  { top: 100%; }
-      100% { top: -10%; }
+      from { top: -30%; }
+      to   { top: 100%; opacity: 0; }
     }
 
     /* Mini chart cards */
@@ -200,21 +194,14 @@
     .flow-node:nth-child(3) .dot { background: rgba(6, 182, 212, 0.16); }
     .flow-node:nth-child(5) .dot { background: rgba(34, 197, 94, 0.16); }
     .flow-node span { font-size: 10.5px; color: var(--text-muted); font-weight: 500; }
-    .flow-track { flex: 1; height: 1px; background: rgba(255,255,255,0.12); position: relative; margin: 0 6px 22px; }
-    .flow-dot {
-      position: absolute; top: 50%; left: 0;
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--accent);
-      transform: translateY(-50%);
-      animation: flowMove 2.6s linear infinite;
-      box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
+    .flow-track {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      position: relative; margin: 0 6px 22px;
+      transform: scaleX(0); transform-origin: left;
+      animation: trackDraw 0.6s var(--ease) both;
     }
-    @keyframes flowMove {
-      0%   { left: 0%; opacity: 0; }
-      10%  { opacity: 1; }
-      90%  { opacity: 1; }
-      100% { left: 100%; opacity: 0; }
-    }
+    @keyframes trackDraw { to { transform: scaleX(1); } }
 
     /* ── RIGHT PANEL (form) ── */
     .form-panel {
@@ -456,29 +443,6 @@ function shakeCard() {
 function setLoading(btn, isLoading) {
   btn.classList.toggle('loading', isLoading);
 }
-
-// Gentle parallax on the illustration panel -- a few pixels of depth shift
-// following the cursor, not the aggressive full-scene 3D tilt an earlier
-// version of these pages used. Cheap: just a couple of transform writes
-// per mousemove, no canvas, no per-frame work.
-(function () {
-  const panel = document.getElementById('illustrationPanel');
-  if (!panel) return;
-  const layers = panel.querySelectorAll('[data-depth]');
-  if (!layers.length) return;
-  panel.addEventListener('mousemove', (e) => {
-    const rect = panel.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    layers.forEach((layer) => {
-      const depth = parseFloat(layer.dataset.depth) || 0;
-      layer.style.transform = `translate(${x * depth}px, ${y * depth}px)`;
-    });
-  });
-  panel.addEventListener('mouseleave', () => {
-    layers.forEach((layer) => { layer.style.transform = 'translate(0, 0)'; });
-  });
-})();
 
 {% block extra_script %}{% endblock %}
 </script>
