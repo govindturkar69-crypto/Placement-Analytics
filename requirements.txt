@@ -32,3 +32,12 @@ python-dotenv==1.2.2
 # OAuth2/OIDC client for "Continue with Google" login. No known vulnerabilities
 # against 1.7.2 per PyPI's published vulnerability metadata (checked at pin time).
 Authlib==1.7.2
+# Authlib's Flask integration (authlib.integrations.flask_client) needs this
+# at runtime for the HTTP calls to Google's OAuth endpoints, but doesn't
+# declare it as an install dependency -- without pinning it explicitly here,
+# a clean install (e.g. CI) is missing it even though it works locally on a
+# machine that already has it from something else. Pinned to 2.34.2, the
+# latest release, which is past the fixes for both CVE-2024-47081 (.netrc
+# credential leak) and GHSA-gc5v-m9x4-r6x2 (predictable temp-file names in
+# extract_zipped_paths(), unused by this app either way).
+requests==2.34.2
