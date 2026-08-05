@@ -6,7 +6,7 @@ from flask import render_template, request, redirect, url_for, session, flash
 from flask_mail import Message
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from ..extensions import mysql, mail, limiter
+from ..extensions import mysql, mail, limiter, oauth
 
 
 def register(app):
@@ -46,6 +46,47 @@ def register(app):
     def logout():
         session.clear()
         return redirect(url_for('login'))
+
+    def _google_configured():
+        return bool(app.config.get('GOOGLE_CLIENT_ID') and app.config.get('GOOGLE_CLIENT_SECRET'))
+
+    @app.route('/login/google')
+    def login_google():
+        if not _google_configured():
+            flash('Google sign-in is not set up for this site yet.', 'danger')
+            return redirect(url_for('login'))
+        redirect_uri = url_for('login_google_callback', _external=True)
+        return oauth.google.authorize_redirect(redirect_uri)
+
+    @app.route('/login/google/callback')
+    def login_google_callback():
+        if not _google_configured():
+            flash('Google sign-in is not set up for this site yet.', 'danger')
+            return redirect(url_for('login'))
+        try:
+            token = oauth.google.authorize_access_token()
+            userinfo = token.get('userinfo') or {}
+            email = userinfo.get('email')
+        except Exception:
+            email = None
+        if not email:
+            flash('Google sign-in failed. Please try again or use your email and password.', 'danger')
+            return redirect(url_for('login'))
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT student_id, name, role FROM students WHERE email=%s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        if not user:
+            flash(f'No account found for {email}. Contact your placement cell admin.', 'danger')
+            return redirect(url_for('login'))
+
+        session.permanent    = True
+        session['logged_in'] = True
+        session['user_id']   = user[0]
+        session['user_name'] = user[1]
+        session['role']      = user[2]
+        return redirect(url_for('dashboard'))
 
     @app.route('/forgot_password', methods=['GET', 'POST'])
     @limiter.limit("3 per minute", methods=["POST"])

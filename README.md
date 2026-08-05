@@ -180,7 +180,7 @@ placement-analytics/
 ├── placement_analytics/          # The application package
 │   ├── __init__.py                # create_app() factory
 │   ├── config.py                  # Config class, reads env vars
-│   ├── extensions.py              # mysql / mail / limiter / csrf instances
+│   ├── extensions.py              # mysql / mail / limiter / csrf / oauth instances
 │   ├── decorators.py              # login_required, admin_required
 │   ├── utils.py                   # safe_redirect_back, any_blank, excel_safe
 │   ├── errors.py                  # 404/500/429/413/CSRF error handlers
@@ -216,6 +216,8 @@ placement-analytics/
 |:---|:---:|:---|:---|
 | `/` | GET | Public | Redirects to login or dashboard |
 | `/login` | GET/POST | Public | Authentication |
+| `/login/google` | GET | Public | Start "Continue with Google" sign-in |
+| `/login/google/callback` | GET | Public | Google OAuth callback |
 | `/logout` | GET | Any | End session |
 | `/forgot_password` | GET/POST | Public | Request a password reset link |
 | `/reset_password/<token>` | GET/POST | Public | Reset password via emailed token |
@@ -282,6 +284,25 @@ python -m unittest discover -s tests -v
 ```
 
 The suite mocks the database layer, so it runs without a live MySQL connection. CI runs it automatically on every push and pull request to `main`.
+
+---
+
+## "Continue with Google" Setup
+
+Google sign-in is optional — if `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` aren't set, the button on the login page shows a friendly "not set up yet" message instead of erroring. To enable it:
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an **OAuth 2.0 Client ID** (Application type: *Web application*).
+2. Add these to **Authorized redirect URIs**:
+   - `http://localhost:5000/login/google/callback` (local dev)
+   - `https://<your-render-domain>/login/google/callback` (production)
+3. Add `.env` (local) or your host's environment variable settings (production):
+   ```
+   GOOGLE_CLIENT_ID=your_client_id
+   GOOGLE_CLIENT_SECRET=your_client_secret
+   ```
+4. Restart the app.
+
+Google login only works for an email that already matches an existing student/admin record — it's an alternate way to sign in to an account, not a self-registration flow. An unmatched email is denied with a message pointing the user to their placement cell admin.
 
 ---
 

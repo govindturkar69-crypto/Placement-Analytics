@@ -8,7 +8,7 @@ from flask import Flask, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
-from .extensions import mysql, mail, csrf, limiter
+from .extensions import mysql, mail, csrf, limiter, oauth
 from . import errors
 from .routes import register_all
 
@@ -27,6 +27,14 @@ def create_app():
     mail.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+    oauth.init_app(app)
+    oauth.register(
+        name='google',
+        client_id=app.config['GOOGLE_CLIENT_ID'],
+        client_secret=app.config['GOOGLE_CLIENT_SECRET'],
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'openid email profile'},
+    )
 
     errors.register(app)
     register_all(app)
