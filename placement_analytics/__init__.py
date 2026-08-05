@@ -8,7 +8,7 @@ from flask import Flask, request
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import Config
-from .extensions import mysql, mail, csrf, limiter, oauth
+from .extensions import mysql, csrf, limiter, oauth
 from . import errors
 from .routes import register_all
 
@@ -24,7 +24,6 @@ def create_app():
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     mysql.init_app(app)
-    mail.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
     oauth.init_app(app)

@@ -11,7 +11,6 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-import app as app_module
 import pymysql
 from flask_mysqldb import MySQL
 
@@ -54,11 +53,10 @@ class AddPlacementTests(AppTestCase):
     def test_valid_placement_still_succeeds(self):
         connection, cursor = mock_connection()
         cursor.fetchone.side_effect = [('Govind', 'govind@example.com'), ('TCS', 7.5)]
-        # .env carries real MAIL_USERNAME/MAIL_PASSWORD (loaded via load_dotenv() in
-        # app.py), so without this mock a passing test would attempt a real SMTP
-        # connection to Gmail for the placement-confirmation email.
+        # Without this mock a passing test would attempt a real HTTPS call to
+        # Resend for the placement-confirmation email.
         with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
-             patch.object(app_module.mail, 'send') as mock_send:
+             patch('placement_analytics.routes.placements.send_email') as mock_send:
             response = self.client.post('/add_placement', data={
                 'student_id': '1',
                 'company_id': '1',

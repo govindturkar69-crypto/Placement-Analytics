@@ -1,10 +1,8 @@
-import os
-
 import pymysql
 from flask import render_template, request, redirect, url_for, session, flash
-from flask_mail import Message
 
-from ..extensions import mysql, mail
+from ..email import send_email
+from ..extensions import mysql
 from ..decorators import login_required, admin_required
 
 
@@ -54,11 +52,8 @@ def register(app):
             cur.execute("SELECT company_name, package FROM companies WHERE company_id=%s", (company_id,))
             company = cur.fetchone()
             cur.close()
-            if student and company and os.environ.get('MAIL_USERNAME'):
-                try:
-                    msg = Message('🎉 Congratulations! Placement Confirmed',
-                        sender=os.environ.get('MAIL_USERNAME'), recipients=[student[1]])
-                    msg.body = f'''Dear {student[0]},
+            if student and company:
+                body = f'''Dear {student[0]},
 
 🎉 You have been placed at {company[0]}!
 
@@ -68,9 +63,7 @@ Year    : {year}
 Status  : {status}
 
 Best Regards, Placement Analytics Team'''
-                    mail.send(msg)
-                except Exception:
-                    pass
+                send_email(student[1], '🎉 Congratulations! Placement Confirmed', body)
             flash('Placement recorded successfully!', 'success')
             return redirect(url_for('placements'))
         cur.execute("SELECT student_id, name FROM students ORDER BY name")
