@@ -46,7 +46,7 @@
 - Track personal placement status
 - Profile page with skill badges and a readiness score
 - ML predictor to estimate placement chances
-- Email-based password reset
+- OTP-based password reset (6-digit code sent by email)
 - Dark mode
 
 </td>
@@ -178,8 +178,10 @@ placement-analytics/
 | `/login/google` | GET | Public | Start "Continue with Google" sign-in |
 | `/login/google/callback` | GET | Public | Google OAuth callback |
 | `/logout` | GET | Any | End session |
-| `/forgot_password` | GET/POST | Public | Request a password reset link |
-| `/reset_password/<token>` | GET/POST | Public | Reset password via emailed token |
+| `/forgot_password` | GET/POST | Public | Request a 6-digit password reset code |
+| `/verify_otp` | GET/POST | Public | Verify the emailed code |
+| `/resend_otp` | POST | Public | Resend the code (rate-limited) |
+| `/reset_password` | GET/POST | Public | Set a new password (requires a verified code) |
 | `/dashboard` | GET | Logged in | Overview and notifications |
 | `/students` | GET | Logged in | List students |
 | `/add_student` | GET/POST | Admin | Add a student |

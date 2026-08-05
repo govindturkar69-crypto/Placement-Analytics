@@ -1,0 +1,165 @@
+{% extends "auth_base.html" %}
+{% block title %}Verify Code – Placement Analytics{% endblock %}
+
+{% block extra_style %}
+.otp-input {
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s var(--ease);
+}
+.otp-input::placeholder { color: var(--text-faint); letter-spacing: 10px; }
+.otp-input:focus {
+  border-color: var(--primary);
+  background: rgba(37, 99, 235, 0.05);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.resend-row { text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-muted); }
+.resend-row button {
+  background: none; border: none; color: var(--accent);
+  font-weight: 600; font-size: 13px; cursor: pointer;
+  font-family: inherit; padding: 0;
+}
+.resend-row button:disabled { color: var(--text-faint); cursor: default; }
+.resend-row button:hover:not(:disabled) { text-decoration: underline; }
+{% endblock %}
+
+{% block illustration %}
+<div class="illustration-copy">
+  <h1>One Last Step</h1>
+  <p>Enter the code we sent to confirm it's really you before resetting your password.</p>
+</div>
+
+<div class="illustration-stage">
+  <div class="scene-glow"></div>
+
+  <div class="float-card scene-phone" style="position:absolute; top:60px; left:190px; right:auto;">
+    <div class="phone-label">Your code</div>
+    <div class="phone-code">
+      <span class="filled"></span><span class="filled"></span><span class="filled"></span><span class="filled"></span>
+    </div>
+  </div>
+
+  <svg class="scene-person" viewBox="0 0 120 210" width="140" height="245" aria-hidden="true">
+    <ellipse cx="60" cy="200" rx="40" ry="7" fill="rgba(0,0,0,0.28)"></ellipse>
+    <rect x="46" y="132" width="17" height="58" rx="8.5" fill="#1E3A8A"></rect>
+    <rect x="41" y="182" width="27" height="11" rx="5.5" fill="#0B1220"></rect>
+    <rect x="65" y="130" width="17" height="60" rx="8.5" fill="#2563EB"></rect>
+    <rect x="60" y="184" width="27" height="11" rx="5.5" fill="#0B1220"></rect>
+    <path d="M38 80 Q38 60 60 60 Q82 60 82 80 L87 142 Q60 154 33 142 Z" fill="#06B6D4"></path>
+    <path d="M40 84 Q20 96 22 122" stroke="#0891B2" stroke-width="14" stroke-linecap="round" fill="none"></path>
+    <path d="M82 84 Q100 92 96 110" stroke="#06B6D4" stroke-width="14" stroke-linecap="round" fill="none"></path>
+    <rect x="86" y="98" width="20" height="30" rx="4" fill="#0B1220" transform="rotate(8 96 113)"></rect>
+    <circle cx="60" cy="42" r="25" fill="#2563EB"></circle>
+    <path d="M35 38 Q60 12 85 38 Q86 24 60 21 Q34 24 35 38Z" fill="#1E3A8A"></path>
+  </svg>
+</div>
+{% endblock %}
+
+{% block card_content %}
+<div class="icon-wrap">🔢</div>
+
+<div class="heading">
+  <h1>Verify Your Code</h1>
+  <p>Enter the 6-digit code we sent to <strong>{{ masked_email }}</strong>. It expires in 10 minutes.</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ '✅' if category == 'success' else '❌' }} {{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
+<div class="form-group">
+  <label class="form-label" for="otp">Verification Code</label>
+  <input type="text" id="otp" class="otp-input" inputmode="numeric" pattern="[0-9]*"
+         maxlength="6" autocomplete="one-time-code" placeholder="------" autofocus>
+</div>
+
+<button class="btn-submit" onclick="submitOtp()" id="verifyBtn">
+  <span class="btn-label">Verify Code →</span>
+  <span class="btn-loader"><span></span><span></span><span></span></span>
+</button>
+
+<div class="resend-row">
+  <span id="resendText">Didn't get the code? Resend in <span id="countdown">--</span></span>
+  <button type="button" id="resendBtn" onclick="resendOtp()" style="display:none;">Resend Code</button>
+</div>
+
+<div class="auth-footer">
+  <a href="{{ url_for('forgot_password') }}">← Use a different email</a>
+</div>
+{% endblock %}
+
+{% block extra_script %}
+function submitOtp() {
+  const otp = document.getElementById('otp').value.trim();
+  if (otp.length !== 6) {
+    shakeCard();
+    return;
+  }
+  const btn = document.getElementById('verifyBtn');
+  setLoading(btn, true);
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = '/verify_otp';
+  [['otp', otp], ['csrf_token', '{{ csrf_token() }}']].forEach(([k, v]) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden'; inp.name = k; inp.value = v;
+    form.appendChild(inp);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function resendOtp() {
+  const btn = document.getElementById('resendBtn');
+  btn.disabled = true;
+  const form = document.createElement('form');
+  form.method = 'POST'; form.action = '/resend_otp';
+  const csrf = document.createElement('input');
+  csrf.type = 'hidden'; csrf.name = 'csrf_token'; csrf.value = '{{ csrf_token() }}';
+  form.appendChild(csrf);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+(function startCountdown() {
+  let remaining = {{ resend_wait_seconds }};
+  const countdownEl = document.getElementById('countdown');
+  const resendText = document.getElementById('resendText');
+  const resendBtn = document.getElementById('resendBtn');
+
+  function render() {
+    if (remaining <= 0) {
+      resendText.style.display = 'none';
+      resendBtn.style.display = 'inline';
+      return;
+    }
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    countdownEl.textContent = m + ':' + String(s).padStart(2, '0');
+  }
+  render();
+  const timer = setInterval(() => {
+    remaining -= 1;
+    render();
+    if (remaining <= 0) clearInterval(timer);
+  }, 1000);
+})();
+
+document.getElementById('otp').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') submitOtp(); });
+{% endblock %}
