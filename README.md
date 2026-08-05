@@ -19,47 +19,6 @@
 
 ---
 
-## Screenshots
-
-<div align="center">
-
-### Login
-![Login Page](screenshots/login.png)
-
-### Admin Dashboard
-![Admin Dashboard](screenshots/admin-dashboard.png)
-
-### Student Portal
-![Student Portal](screenshots/student-dashboard.png)
-
-### Analytics Dashboard
-![Analytics](screenshots/analytics.png)
-
-### ML Placement Predictor
-![ML Predictor](screenshots/ml-predictor.png)
-
-### Predictor Results
-![ML Results](screenshots/ml-result.png)
-
-### Student Management
-![Students](screenshots/students.png)
-
-### Company Management
-![Companies](screenshots/companies.png)
-
-### Student Profile
-![Profile](screenshots/profile.png)
-
-### CSV Bulk Upload
-![CSV Upload](screenshots/csv-upload.png)
-
-### Dark Mode
-![Dark Mode](screenshots/dark-mode.png)
-
-</div>
-
----
-
 ## Features
 
 <table>
