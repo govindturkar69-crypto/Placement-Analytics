@@ -37,15 +37,20 @@ CREATE TABLE IF NOT EXISTS placements (
     FOREIGN KEY (company_id) REFERENCES companies(company_id) ON DELETE CASCADE
 );
 
--- Password reset tokens live here instead of an in-memory dict so links
--- survive an app restart/redeploy (Render's free tier sleeps and restarts
--- on inactivity, which would otherwise silently invalidate every
--- outstanding reset link).
-CREATE TABLE IF NOT EXISTS password_resets (
-    token VARCHAR(64) PRIMARY KEY,
+-- One-time passcodes for the forgot-password flow live here instead of an
+-- in-memory dict so they survive an app restart/redeploy (Render's free
+-- tier sleeps and restarts on inactivity, which would otherwise silently
+-- invalidate every outstanding OTP). The code itself is hashed, same as a
+-- real password -- a DB leak shouldn't hand out working reset codes.
+CREATE TABLE IF NOT EXISTS password_otps (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
     expires_at DATETIME NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    attempts INT NOT NULL DEFAULT 0,
+    resend_count INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_password_otps_email (email)
 );
 
 -- Sample Data (passwords are plain text here — run `python scripts/init_passwords.py` after import)
