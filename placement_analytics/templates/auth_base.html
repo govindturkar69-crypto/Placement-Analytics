@@ -203,6 +203,44 @@
     }
     @keyframes trackDraw { to { transform: scaleX(1); } }
 
+    /* Security scene: a flat-style figure at a laptop (lock fields +
+       success check) with a phone (verification code) alongside --
+       shared by forgot_password.html and reset_password.html, both of
+       which tell the same "resetting a password" story. Hand-drawn
+       shapes, not an imported asset. */
+    .scene-glow {
+      position: absolute; width: 280px; height: 280px; border-radius: 50%;
+      left: 50%; bottom: -20px; transform: translateX(-50%);
+      background: radial-gradient(circle, rgba(37,99,235,0.28), transparent 70%);
+      opacity: 0;
+      animation: glowIn 1s var(--ease) 0.1s both;
+      z-index: 1;
+    }
+    @keyframes glowIn { to { opacity: .7; } }
+    .scene-person { position: absolute; left: 168px; bottom: 0; z-index: 4; animation: cardIn 0.6s var(--ease) 0.5s both; filter: drop-shadow(0 16px 20px rgba(0,0,0,0.35)); }
+    @keyframes popIn { to { opacity: 1; transform: scale(1); } }
+
+    .scene-laptop { bottom: 4px; left: 0; width: 218px; padding: 16px; z-index: 2; animation-delay: .1s; }
+    .scene-laptop .laptop-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .scene-laptop .laptop-icon { font-size: 13px; opacity: .8; }
+    .scene-laptop .laptop-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.1); }
+    .scene-laptop .laptop-bar.short { max-width: 60%; }
+    .laptop-check {
+      position: absolute; top: -10px; right: -10px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--success); color: #0F172A; font-weight: 800; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 18px rgba(34,197,94,0.4);
+      opacity: 0; transform: scale(0.5);
+      animation: popIn 0.4s var(--ease) 1.3s both;
+    }
+
+    .scene-phone { top: 6px; right: 18px; width: 108px; padding: 16px 12px; z-index: 2; animation-delay: .3s; text-align: center; }
+    .scene-phone .phone-label { font-size: 9px; letter-spacing: 1px; color: var(--text-faint); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+    .scene-phone .phone-code { display: flex; gap: 6px; justify-content: center; }
+    .scene-phone .phone-code span { width: 16px; height: 22px; border-radius: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); }
+    .scene-phone .phone-code span.filled { background: rgba(6,182,212,0.18); border-color: rgba(6,182,212,0.45); }
+
     /* ── RIGHT PANEL (form) ── */
     .form-panel {
       display: flex;
@@ -252,6 +290,18 @@
     }
     .brand-text { font-size: 14px; font-weight: 700; letter-spacing: -0.2px; }
     .brand-sub { font-size: 11px; color: var(--text-faint); font-weight: 400; margin-top: 1px; }
+
+    /* ── ICON BADGE (forgot/reset password card header) ── */
+    .icon-wrap {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(6,182,212,0.12));
+      border: 1px solid rgba(37,99,235,0.32);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 24px rgba(37,99,235,0.16);
+    }
 
     /* ── HEADING ── */
     .heading { margin-bottom: 26px; }
