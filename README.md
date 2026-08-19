@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="screenshots/logo.png" alt="Logo" width="80" height="80">
+<img src="screenshots/logo.png" alt="Placement Analytics Logo" width="100" height="100">
 
-# Smart Placement Analytics System
+# Smart Placement Analytics Platform
 
-### A full-stack college placement management platform with role-based dashboards, real-time analytics, and an ML-based placement predictor
+**A powerful, full-stack college placement management system with role-based dashboards, real-time analytics, and an ML-based placement predictor.**
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-placement--analytics.onrender.com-2563eb?style=for-the-badge)](https://placement-analytics.onrender.com)
 [![Source](https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/govindturkar69-crypto/Placement-Analytics)
@@ -19,288 +19,184 @@
 
 ---
 
-## Features
+## 🎯 Overview
 
-<table>
-<tr>
-<td width="50%">
-
-### Admin
-
-- Add, edit, and delete students and companies
-- Record and manage placements, with email notification on placement
-- CSV bulk upload for students
-- Search and filter across students and companies
-- Analytics dashboard with five chart types
-- PDF report and Excel export (multi-sheet)
-- Dashboard notifications
-- Dark mode
-
-</td>
-<td width="50%">
-
-### Student
-
-- Personal login, separate from the admin view
-- Browse visiting companies
-- Track personal placement status
-- Profile page with skill badges and a readiness score
-- ML predictor to estimate placement chances
-- OTP-based password reset (6-digit code sent by email)
-- Dark mode
-
-</td>
-</tr>
-</table>
+The **Smart Placement Analytics Platform** modernizes how colleges manage their placement drives. Built for performance and security, it provides two distinct, highly optimized experiences: one for the **Placement Cell (Admins)** to track data, generate reports, and manage companies, and another for **Students** to register, monitor their status, and predict their placement chances using Machine Learning.
 
 ---
 
-## ML Placement Predictor
+## ✨ Key Features
 
-A weighted six-factor scoring model estimates placement probability:
+<details open>
+<summary><b>👨‍🎓 Student Experience</b></summary>
 
-| Factor | Weight | What it measures |
-|:---|:---:|:---|
-| CGPA | 30% | Academic performance |
-| Skills | 25% | Skill count and match against in-demand skills |
-| Branch | 15% | Historical branch-wise placement rate |
-| Backlogs | 15% | Backlog penalty |
-| Internship | 10% | Prior industry experience |
-| Projects | 5% | Project portfolio count |
+- **Self-Registration:** Seamless onboarding with email verification or Google OAuth.
+- **Personalized Dashboard:** Track your placement status, view visiting companies, and monitor trends.
+- **ML Placement Predictor:** Estimate placement chances based on academic and extracurricular metrics.
+- **Profile Management:** Highlight skills, CGPA, projects, and internships to calculate a readiness score.
+- **Secure Access:** OTP-based password resets sent directly via email.
+</details>
 
-The result includes an overall chance percentage, a per-factor score breakdown, company-tier matches, and personalized improvement tips.
+<details open>
+<summary><b>👑 Admin Capabilities (Placement Cell)</b></summary>
 
----
-
-## Analytics Dashboard
-
-| Chart | Shows |
-|:---|:---|
-| Bar | Company-wise hiring count |
-| Line | Year-over-year placement trend |
-| Doughnut | Branch-wise placement share |
-| Bar | Package distribution by company |
-| Horizontal bar | Most in-demand skills |
+- **Comprehensive Data Management:** Add, edit, or remove students and companies easily.
+- **Bulk Import:** Seamlessly upload hundreds of student records via CSV.
+- **Real-Time Analytics:** Visualize placement data across 5 distinct chart types (Branch-wise, Year-over-Year, Skill demand, etc.).
+- **Automated Communication:** Instant email notifications sent to students upon successful placement.
+- **Export & Reporting:** Generate polished PDF reports or multi-sheet Excel exports in a single click.
+</details>
 
 ---
 
-## Security
+## 🧠 ML Placement Predictor
 
-| Area | Implementation |
-|:---|:---|
-| Passwords | Hashed with Werkzeug (`pbkdf2:sha256`), never stored or logged in plain text |
-| CSRF | Flask-WTF tokens on every state-changing form |
-| SQL injection | Parameterized queries throughout — no string-built SQL |
-| XSS | Autoescaped templates; chart data passed through Jinja's `tojson`, not raw JSON |
-| Session handling | HttpOnly, Secure, SameSite=Lax cookies; 30-minute idle timeout |
-| Access control | Route-level admin/student separation on every view and mutation |
-| Rate limiting | Login and password-reset requests are throttled per IP |
-| File uploads | Size-capped; CSV export sanitized against formula injection |
-| Transport | HSTS enabled; security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) on every response |
-| Credentials | Configured entirely through environment variables, never hardcoded |
+Our weighted six-factor machine learning scoring model accurately estimates placement probability:
 
----
+| Factor | Weight | Impact Area |
+| :--- | :---: | :--- |
+| **CGPA** | `30%` | Baseline academic performance and consistency. |
+| **Skills** | `25%` | Skill count matched against current industry demand. |
+| **Branch** | `15%` | Historical placement rates for the specific department. |
+| **Backlogs** | `15%` | Impact of active or past academic backlogs. |
+| **Internship** | `10%` | Prior industry experience and practical exposure. |
+| **Projects** | `5%` | Depth and relevance of project portfolio. |
 
-## Tech Stack
-
-<div align="center">
-
-| Layer | Technology |
-|:---|:---|
-| Backend | Python, Flask |
-| Database | MySQL |
-| Frontend | HTML5, CSS3, Chart.js |
-| Auth & security | Werkzeug, Flask-WTF, Flask-Limiter |
-| PDF reports | ReportLab |
-| Excel export | OpenPyXL |
-| Email | Resend (HTTPS API) |
-| Testing | `unittest`, GitHub Actions CI |
-| Deployment | Render |
-
-</div>
+*Output includes an overall probability score, a factor-by-factor breakdown, tier matches for companies, and actionable improvement tips.*
 
 ---
 
-## Try It Yourself
+## 📊 Analytics Dashboard
 
-Clone the repo and follow [Local Setup](#local-setup) below to run the app against your own database with your own credentials. Live demo credentials aren't published here — publishing a working admin login for a real deployment is a standing invitation to anyone reading this file.
+Admins have access to a rich, interactive data visualization suite:
 
----
-
-## Project Structure
-
-```
-placement-analytics/
-├── app.py                        # Entry point -- Render runs this directly
-├── database.sql                  # Schema + sample seed data
-├── requirements.txt
-├── README.md
-│
-├── placement_analytics/          # The application package
-│   ├── __init__.py                # create_app() factory
-│   ├── config.py                  # Config class, reads env vars
-│   ├── extensions.py              # mysql / mail / limiter / csrf / oauth instances
-│   ├── decorators.py              # login_required, admin_required
-│   ├── utils.py                   # safe_redirect_back, any_blank, excel_safe
-│   ├── errors.py                  # 404/500/429/413/CSRF error handlers
-│   ├── routes/                    # One module per resource, registered on the app directly (no blueprints -- keeps every endpoint name and URL exactly as-is)
-│   │   ├── auth.py                 # index, login, logout, forgot/reset password
-│   │   ├── dashboard.py
-│   │   ├── students.py             # students, add/edit/delete, CSV upload
-│   │   ├── companies.py
-│   │   ├── placements.py
-│   │   ├── analytics.py
-│   │   ├── predict.py
-│   │   ├── reports.py              # PDF + Excel export
-│   │   └── profile.py              # profile, /api/stats
-│   ├── templates/                  # base.html, auth_base.html, and all pages
-│   └── static/
-│
-├── scripts/
-│   └── init_passwords.py         # One-time helper: hash seed-data passwords
-│
-├── tests/                         # unittest suite (mocked DB, no live DB needed)
-│
-├── .github/workflows/
-│   └── tests.yml                  # CI: runs the test suite on push/PR
-│
-└── screenshots/                   # Images referenced above
-```
+- **Bar Charts:** Company-wise hiring count and package distribution.
+- **Line Charts:** Year-over-year placement growth trends.
+- **Doughnut Charts:** Branch-wise placement share and distribution.
+- **Horizontal Bars:** Most in-demand technical and soft skills.
 
 ---
 
-## API Routes
+## 🛡️ Enterprise-Grade Security
 
-| Route | Method | Access | Description |
-|:---|:---:|:---|:---|
-| `/` | GET | Public | Redirects to login or dashboard |
-| `/login` | GET/POST | Public | Authentication |
-| `/login/google` | GET | Public | Start "Continue with Google" sign-in |
-| `/login/google/callback` | GET | Public | Google OAuth callback |
-| `/logout` | GET | Any | End session |
-| `/forgot_password` | GET/POST | Public | Request a 6-digit password reset code |
-| `/verify_otp` | GET/POST | Public | Verify the emailed code |
-| `/resend_otp` | POST | Public | Resend the code (rate-limited) |
-| `/reset_password` | GET/POST | Public | Set a new password (requires a verified code) |
-| `/dashboard` | GET | Logged in | Overview and notifications |
-| `/students` | GET | Logged in | List students |
-| `/add_student` | GET/POST | Admin | Add a student |
-| `/edit_student/<id>` | GET/POST | Admin | Edit a student |
-| `/delete_student/<id>` | POST | Admin | Delete a student |
-| `/upload_csv` | GET/POST | Admin | Bulk-add students from CSV |
-| `/companies` | GET | Logged in | List companies |
-| `/add_company` | GET/POST | Admin | Add a company |
-| `/edit_company/<id>` | GET/POST | Admin | Edit a company |
-| `/delete_company/<id>` | POST | Admin | Delete a company |
-| `/placements` | GET | Logged in | Placement records |
-| `/add_placement` | GET/POST | Admin | Record a placement (sends email) |
-| `/delete_placement/<id>` | POST | Admin | Delete a placement record |
-| `/analytics` | GET | Admin | Chart dashboard |
-| `/predict` | GET/POST | Logged in | ML placement prediction |
-| `/profile` | GET | Logged in | Personal profile |
-| `/download_report` | GET | Admin | PDF report download |
-| `/export_excel` | GET | Admin | Excel export |
-| `/api/stats` | GET | Logged in | JSON summary stats |
+Security is deeply integrated into the platform's architecture:
+
+- **Authentication:** Passwords securely hashed with `pbkdf2:sha256` (Werkzeug).
+- **Protection Against Attacks:**
+  - **CSRF:** Flask-WTF tokens secure every state-changing form.
+  - **SQLi:** Parameterized queries used globally.
+  - **XSS:** Jinja autoescaping and safe JSON serialization.
+- **Session Security:** `HttpOnly`, `Secure`, and `SameSite=Lax` cookies with a 30-minute idle timeout.
+- **Rate Limiting:** IP-based throttling on authentication and password reset routes.
+- **Transport Security:** Enforced HSTS and strict security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`).
 
 ---
 
-## Local Setup
+## 🛠️ Technology Stack
 
+| Component | Technologies Used |
+| :--- | :--- |
+| **Backend Framework** | Python 3.11+, Flask 2.3 |
+| **Database** | MySQL |
+| **Frontend** | HTML5, CSS3 (Vanilla CSS with Custom Properties), Chart.js |
+| **Security & Auth** | Werkzeug, Flask-WTF, Flask-Limiter, Google OAuth |
+| **Document Generation**| ReportLab (PDF), OpenPyXL (Excel) |
+| **Email Service** | Resend API (HTTPS-based delivery) |
+| **Testing & CI/CD** | `unittest`, GitHub Actions |
+| **Cloud Hosting** | Render |
+
+---
+
+## 🚀 Local Setup & Installation
+
+Get the platform running locally in minutes.
+
+### Prerequisites
+- Python 3.11 or higher
+- MySQL Server
+
+### 1. Clone & Install
 ```bash
-# 1. Clone the repository
 git clone https://github.com/govindturkar69-crypto/Placement-Analytics.git
 cd Placement-Analytics
-
-# 2. Install dependencies
 pip install -r requirements.txt
+```
 
-# 3. Set up the database
+### 2. Database Setup
+```bash
 mysql -u root -p < database.sql
-
-# 4. Hash the sample seed passwords (database.sql stores them as plain
-#    text; this converts them to Werkzeug hashes before first login)
 python scripts/init_passwords.py
+```
+*(The init script securely hashes the plain-text passwords stored in the seed database).*
 
-# 5. Configure environment variables — create a .env file in the
-#    project root (auto-loaded by python-dotenv, no manual export needed):
-cat > .env <<EOF
+### 3. Environment Configuration
+Create a `.env` file in the project root:
+```env
 MYSQL_HOST=localhost
 MYSQL_USER=root
 MYSQL_PASSWORD=your_password
 MYSQL_DB=placement_db
 MYSQL_PORT=3306
-SECRET_KEY=your_secret_key
-EOF
-
-# 6. Run
-python app.py
+SECRET_KEY=your_super_secret_key
 ```
 
-Visit **http://localhost:5000**.
+### 4. Run the Application
+```bash
+python app.py
+```
+Access the application at `http://localhost:5000`.
 
-### Running tests
-
+### Running Tests
+The test suite utilizes a mocked database layer, meaning it can run without an active MySQL connection.
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-The suite mocks the database layer, so it runs without a live MySQL connection. CI runs it automatically on every push and pull request to `main`.
-
 ---
 
-## "Continue with Google" Setup
+## 🔌 Optional Integrations
 
-Google sign-in is optional — if `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` aren't set, the button on the login page shows a friendly "not set up yet" message instead of erroring. To enable it:
-
-1. In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an **OAuth 2.0 Client ID** (Application type: *Web application*).
-2. Add these to **Authorized redirect URIs**:
-   - `http://localhost:5000/login/google/callback` (local dev)
-   - `https://<your-render-domain>/login/google/callback` (production)
-3. Add `.env` (local) or your host's environment variable settings (production):
-   ```
+### "Continue with Google" Setup
+To enable Google OAuth for quick registration and login:
+1. Create an **OAuth 2.0 Client ID** (Web application) in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+2. Add `http://localhost:5000/login/google/callback` to your Authorized redirect URIs.
+3. Update your `.env`:
+   ```env
    GOOGLE_CLIENT_ID=your_client_id
    GOOGLE_CLIENT_SECRET=your_client_secret
    ```
-4. Restart the app.
 
-Google login only works for an email that already matches an existing student/admin record — it's an alternate way to sign in to an account, not a self-registration flow. An unmatched email is denied with a message pointing the user to their placement cell admin.
-
----
-
-## Email Delivery Setup
-
-Outbound email (OTP codes for password reset, placement confirmation notices) goes through [Resend](https://resend.com)'s HTTPS API rather than SMTP — Render's network blocks raw outbound SMTP connections (`smtplib` fails with `OSError: [Errno 101] Network is unreachable` regardless of how correct the mail credentials are), so sending over HTTPS is what actually works there.
-
-1. Sign up at [resend.com](https://resend.com) and grab an API key from the dashboard.
-2. Add to `.env` (local) or your host's environment variables (production):
-   ```
+### Email Delivery (Resend API)
+For OTPs and placement notifications, the platform uses [Resend](https://resend.com) to bypass typical SMTP blocks on cloud providers.
+1. Obtain an API key from Resend.
+2. Update your `.env`:
+   ```env
    RESEND_API_KEY=your_api_key
    RESEND_FROM_EMAIL=Placement Analytics <onboarding@resend.dev>
    ```
-   `RESEND_FROM_EMAIL` defaults to Resend's shared sandbox sender if unset — check Resend's dashboard for any current restrictions on that address, or verify your own sending domain there for production use.
-3. Restart the app.
-
-If `RESEND_API_KEY` isn't set, emails are silently skipped (logged as a warning) rather than raising — OTP requests and placement notifications still complete normally, they just won't deliver.
 
 ---
 
-## Deployment
+## 📂 Project Architecture
 
+```text
+placement-analytics/
+├── app.py                      # Application entry point
+├── database.sql                # Schema & seed data
+├── .env                        # Environment configurations
+├── placement_analytics/        # Core application package
+│   ├── __init__.py             # App factory & initialization
+│   ├── routes/                 # Blueprint-style modular routes
+│   ├── templates/              # Jinja2 HTML templates
+│   └── static/                 # CSS, JS, and Images
+├── scripts/                    # Utility scripts (e.g., password hashing)
+├── tests/                      # Unit testing suite
+└── .github/workflows/          # CI/CD pipelines
 ```
-Browser
-   │
-   ▼
-Render (Flask app)
-   │
-   ▼
-Managed MySQL
-```
-
-The app reads all database and mail credentials from environment variables at startup — nothing is hardcoded, and none of it lives in this repository.
 
 ---
 
-## Developer
+## 👨‍💻 Developer
 
 <div align="center">
 
