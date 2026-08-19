@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smart Placement Analytics — college placement management with real-time dashboards, ML predictions, and analytics for students and admins.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0F172A">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  <title>Smart Placement Analytics — Placement Management Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:          #0F172A;
+      --bg-elevated: #111C34;
+      --bg-card:     rgba(255,255,255,0.04);
+      --primary:     #2563EB;
+      --primary-l:   #3B82F6;
+      --accent:      #06B6D4;
+      --success:     #22C55E;
+      --text:        #F8FAFC;
+      --text-muted:  rgba(248,250,252,0.55);
+      --text-faint:  rgba(248,250,252,0.32);
+      --border:      rgba(248,250,252,0.10);
+      --ease:        cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; color-scheme: dark; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 68px;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+    }
+    .nav-brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+      flex-shrink: 0;
+    }
+    .nav-brand-text { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
+    .nav-brand-sub  { font-size: 11px; color: var(--text-faint); font-weight: 400; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .nav-btn-ghost {
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13.5px; font-weight: 600; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s var(--ease);
+    }
+    .nav-btn-ghost:hover { border-color: rgba(248,250,252,0.25); color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-btn-primary {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 9px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-l));
+      color: white;
+      font-size: 13.5px; font-weight: 600; font-family: inherit;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s var(--ease);
+      box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+    }
+    .nav-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(37,99,235,0.42); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background radial glows */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -20%; left: 50%;
+      transform: translateX(-50%);
+      width: 900px; height: 600px;
+      background: radial-gradient(ellipse at center, rgba(37,99,235,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -10%; right: 5%;
+      width: 600px; height: 500px;
+      background: radial-gradient(ellipse at center, rgba(6,182,212,0.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 50px;
+      border: 1px solid rgba(37,99,235,0.35);
+      background: rgba(37,99,235,0.1);
+      font-size: 12px; font-weight: 600;
+      color: var(--primary-l);
+      letter-spacing: 0.3px;
+      margin-bottom: 28px;
+      position: relative; z-index: 1;
+      animation: fadeDown 0.5s var(--ease) both;
+    }
+    .hero-badge-dot {
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(6,182,212,0.5); }
+      50%      { box-shadow: 0 0 0 5px rgba(6,182,212,0); }
+    }
+
+    .hero-heading {
+      font-size: clamp(36px, 7vw, 72px);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      position: relative; z-index: 1;
+      animation: fadeDown 0.55s var(--ease) 0.08s both;
+    }
+    .hero-heading .grad {
+      background: linear-gradient(135deg, #F8FAFC 30%, #93C5FD 65%, #06B6D4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-heading .accent-word {
+      background: linear-gradient(135deg, var(--primary-l), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 2.5vw, 19px);
+      color: var(--text-muted);
+      line-height: 1.65;
+      max-width: 620px;
+      margin: 0 auto 44px;
+      position: relative; z-index: 1;
+      font-weight: 400;
+      animation: fadeDown 0.6s var(--ease) 0.16s both;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      position: relative; z-index: 1;
+      animation: fadeDown 0.65s var(--ease) 0.24s both;
+    }
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 15px 32px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-l));
+      color: white;
+      font-size: 15px; font-weight: 700;
+      text-decoration: none;
+      border: none; cursor: pointer; font-family: inherit;
+      transition: all 0.25s var(--ease);
+      box-shadow: 0 10px 30px rgba(37,99,235,0.35);
+      position: relative; overflow: hidden;
+    }
+    .btn-hero-primary::before {
+      content: '';
+      position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+      transition: left 0.5s var(--ease);
+    }
+    .btn-hero-primary:hover::before { left: 100%; }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(37,99,235,0.45); }
+
+    .btn-hero-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 15px 32px;
+      border-radius: 13px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 15px; font-weight: 600;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      cursor: pointer; font-family: inherit;
+      transition: all 0.25s var(--ease);
+    }
+    .btn-hero-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(248,250,252,0.22); transform: translateY(-2px); }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      max-width: 680px;
+      margin: 60px auto 0;
+      position: relative; z-index: 1;
+      animation: fadeDown 0.7s var(--ease) 0.32s both;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+    .stat-item {
+      flex: 1;
+      min-width: 140px;
+      text-align: center;
+      padding: 22px 20px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-item-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #F8FAFC, #93C5FD);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-item-label {
+      font-size: 11.5px;
+      color: var(--text-faint);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 100px 24px;
+    }
+    .section-label {
+      display: inline-block;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--primary-l);
+      margin-bottom: 14px;
+    }
+    .section-heading {
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+    }
+    .section-heading .hl {
+      background: linear-gradient(135deg, var(--primary-l), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .section-sub {
+      font-size: 15.5px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.65;
+    }
+    .section-header { margin-bottom: 56px; }
+
+    /* ── FEATURE CARDS ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      transition: all 0.3s var(--ease);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      border-radius: 18px 18px 0 0;
+      opacity: 0;
+      transition: opacity 0.3s var(--ease);
+    }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(248,250,252,0.18); box-shadow: 0 20px 50px rgba(0,0,0,0.35); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card.blue::before  { background: linear-gradient(90deg, var(--primary), var(--primary-l)); }
+    .feature-card.cyan::before  { background: linear-gradient(90deg, var(--accent), #22D3EE); }
+    .feature-card.green::before { background: linear-gradient(90deg, #22C55E, #34D399); }
+    .feature-card.violet::before { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+    .feature-card.blue  .feature-icon { background: rgba(37,99,235,0.15); }
+    .feature-card.cyan  .feature-icon { background: rgba(6,182,212,0.15); }
+    .feature-card.green .feature-icon { background: rgba(34,197,94,0.15); }
+    .feature-card.violet .feature-icon { background: rgba(139,92,246,0.15); }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .feature-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ── ROLE SPLIT ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .role-card {
+      border-radius: 20px;
+      padding: 36px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .role-card.admin  { background: linear-gradient(135deg, rgba(220,38,38,0.08), rgba(249,115,22,0.04)); }
+    .role-card.student { background: linear-gradient(135deg, rgba(37,99,235,0.08), rgba(6,182,212,0.04)); }
+    .role-card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 14px;
+      border-radius: 50px;
+      font-size: 11.5px; font-weight: 700;
+      letter-spacing: 0.3px;
+      margin-bottom: 20px;
+    }
+    .role-card.admin  .role-card-badge { background: rgba(220,38,38,0.15); color: #FCA5A5; border: 1px solid rgba(220,38,38,0.25); }
+    .role-card.student .role-card-badge { background: rgba(37,99,235,0.15); color: #93C5FD; border: 1px solid rgba(37,99,235,0.25); }
+    .role-card-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+    .role-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .role-card ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .role-card ul li .check {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      margin-top: 1px;
+    }
+    .role-card.admin  ul li .check { background: rgba(220,38,38,0.15); color: #FCA5A5; }
+    .role-card.student ul li .check { background: rgba(37,99,235,0.15); color: #93C5FD; }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      text-align: center;
+      padding: 100px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 800px 500px at 30% 50%, rgba(37,99,235,0.12), transparent 60%),
+        radial-gradient(ellipse 600px 400px at 70% 50%, rgba(6,182,212,0.08), transparent 60%);
+      pointer-events: none;
+    }
+    .cta-inner {
+      position: relative; z-index: 1;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .cta-heading {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .cta-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+    .cta-btns {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .footer-copy { font-size: 12.5px; color: var(--text-faint); }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 12.5px; color: var(--text-faint); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ── DIVIDER LINE ── */
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav { padding: 0 20px; }
+      .role-grid { grid-template-columns: 1fr; }
+      .stats-bar { flex-direction: column; border-radius: 16px; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+      .footer { flex-direction: column; text-align: center; padding: 24px 20px; }
+    }
+    @media (max-width: 480px) {
+      .hero { padding: 100px 16px 60px; }
+      .btn-hero-primary, .btn-hero-ghost { width: 100%; justify-content: center; }
+      .hero-ctas { flex-direction: column; }
+      .features-grid { grid-template-columns: 1fr; }
+      .nav-brand-sub { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav class="nav">
+  <a class="nav-brand" href="/">
+    <div class="nav-brand-icon">🎓</div>
+    <div>
+      <div class="nav-brand-text">Placement Analytics</div>
+      <div class="nav-brand-sub">Smart placement management</div>
+    </div>
+  </a>
+  <div class="nav-actions">
+    <a href="{{ url_for('login') }}" class="nav-btn-ghost" id="navLoginBtn">Sign In</a>
+    <a href="{{ url_for('register') }}" class="nav-btn-primary" id="navRegisterBtn">Get Started →</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    Trusted by placement cells across India
+  </div>
+
+  <h1 class="hero-heading">
+    <span class="grad">Turn Placement Data</span><br>
+    into <span class="accent-word">Career Success</span>
+  </h1>
+
+  <p class="hero-sub">
+    A full-stack placement management platform with role-based dashboards, real-time analytics,
+    ML-powered predictions, and automated reporting — built for colleges that take placements seriously.
+  </p>
+
+  <div class="hero-ctas">
+    <a href="{{ url_for('register') }}" class="btn-hero-primary" id="heroRegisterBtn">
+      🎓 Create Free Account
+    </a>
+    <a href="{{ url_for('login') }}" class="btn-hero-ghost" id="heroLoginBtn">
+      Sign In to Dashboard →
+    </a>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-item-value">100%</div>
+      <div class="stat-item-label">Automated Reports</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-item-value">6</div>
+      <div class="stat-item-label">ML Prediction Factors</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-item-value">5+</div>
+      <div class="stat-item-label">Analytics Chart Types</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-item-value">Real-time</div>
+      <div class="stat-item-label">Live Dashboard Data</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── FEATURES ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-label">Platform Features</div>
+    <h2 class="section-heading">Everything your placement cell <span class="hl">actually needs</span></h2>
+    <p class="section-sub">From bulk CSV uploads to PDF reports and ML-based predictions — all in one place, accessible on any device.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card blue">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title">Real-time Dashboard</div>
+      <div class="feature-desc">Live stats on total students, companies, placement rates, and average packages. Refreshes automatically with every change.</div>
+    </div>
+
+    <div class="feature-card cyan">
+      <div class="feature-icon">🤖</div>
+      <div class="feature-title">ML Placement Predictor</div>
+      <div class="feature-desc">A six-factor scoring model estimates each student's placement probability using CGPA, skills, branch, backlogs, internship, and projects.</div>
+    </div>
+
+    <div class="feature-card green">
+      <div class="feature-icon">📈</div>
+      <div class="feature-title">Advanced Analytics</div>
+      <div class="feature-desc">Five chart types: company-wise hiring, year-over-year trends, branch distribution, package comparison, and skill demand analysis.</div>
+    </div>
+
+    <div class="feature-card violet">
+      <div class="feature-icon">📄</div>
+      <div class="feature-title">Instant Reports</div>
+      <div class="feature-desc">Export placement data as formatted PDF reports or multi-sheet Excel files with a single click — ready for committee presentations.</div>
+    </div>
+
+    <div class="feature-card blue">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-title">Role-based Access</div>
+      <div class="feature-desc">Separate admin and student views. Admins manage all data; students see personal placement status, companies, and their predictor results.</div>
+    </div>
+
+    <div class="feature-card cyan">
+      <div class="feature-icon">📁</div>
+      <div class="feature-title">Bulk CSV Upload</div>
+      <div class="feature-desc">Import hundreds of students at once from a CSV file. Passwords are hashed automatically; duplicate emails are skipped with an error count.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ── ROLES ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-label">Who it's for</div>
+    <h2 class="section-heading">Built for <span class="hl">admins and students</span> alike</h2>
+    <p class="section-sub">Two distinct experiences in one platform — each tailored to what that user actually needs.</p>
+  </div>
+
+  <div class="role-grid">
+    <div class="role-card admin">
+      <div class="role-card-badge">👑 Admin</div>
+      <div class="role-card-title">Placement Cell</div>
+      <ul>
+        <li><span class="check">✓</span> Add, edit, and delete students and companies</li>
+        <li><span class="check">✓</span> Record placements with automatic email confirmation</li>
+        <li><span class="check">✓</span> Bulk import students via CSV upload</li>
+        <li><span class="check">✓</span> View analytics across all years, branches, and companies</li>
+        <li><span class="check">✓</span> Download PDF reports and Excel exports</li>
+        <li><span class="check">✓</span> Dashboard with live notifications and placement pipeline</li>
+      </ul>
+    </div>
+
+    <div class="role-card student">
+      <div class="role-card-badge">🎓 Student</div>
+      <div class="role-card-title">Students</div>
+      <ul>
+        <li><span class="check">✓</span> Personal dashboard showing placement status</li>
+        <li><span class="check">✓</span> Browse visiting companies and packages</li>
+        <li><span class="check">✓</span> Run the ML predictor to estimate placement chances</li>
+        <li><span class="check">✓</span> View and update your profile with skills and CGPA</li>
+        <li><span class="check">✓</span> Secure OTP-based password reset via email</li>
+        <li><span class="check">✓</span> Google sign-in as an alternate login option</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-heading">Ready to modernize your placement process?</h2>
+    <p class="cta-sub">Create your account in seconds. No credit card required — just your college email and you're in.</p>
+    <div class="cta-btns">
+      <a href="{{ url_for('register') }}" class="btn-hero-primary" id="ctaRegisterBtn">
+        🎓 Create Free Account
+      </a>
+      <a href="{{ url_for('login') }}" class="btn-hero-ghost" id="ctaLoginBtn">
+        Already have an account →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="footer">
+  <a class="footer-brand" href="/">
+    <div class="nav-brand-icon" style="width:30px;height:30px;font-size:14px;">🎓</div>
+    <span class="footer-copy">Placement Analytics</span>
+  </a>
+  <div class="footer-links">
+    <a href="{{ url_for('login') }}">Sign In</a>
+    <a href="{{ url_for('register') }}">Register</a>
+    <a href="{{ url_for('forgot_password') }}">Reset Password</a>
+  </div>
+  <div class="footer-copy">© 2026 Smart Placement Analytics. All rights reserved.</div>
+</footer>
+
+</body>
+</html>

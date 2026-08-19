@@ -132,7 +132,7 @@
 </button>
 
 <div class="auth-footer">
-  <a href="{{ url_for('forgot_password') }}">Need help getting back in?</a>
+  <a href="{{ url_for('register') }}">Don't have an account? Register →</a>
 </div>
 {% endblock %}
 
@@ -148,7 +148,7 @@ function submitLogin() {
   const btn = document.getElementById('loginBtn');
   setLoading(btn, true);
   const form = document.createElement('form');
-  form.method = 'POST'; form.action = '/login';
+  form.method = 'POST'; form.action = '{{ url_for("login") }}';
   [
     ['email', email],
     ['password', password],

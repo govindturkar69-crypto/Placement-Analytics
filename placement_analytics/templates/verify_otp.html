@@ -111,7 +111,7 @@ function submitOtp() {
   const btn = document.getElementById('verifyBtn');
   setLoading(btn, true);
   const form = document.createElement('form');
-  form.method = 'POST'; form.action = '/verify_otp';
+  form.method = 'POST'; form.action = '{{ url_for("verify_otp") }}';
   [['otp', otp], ['csrf_token', '{{ csrf_token() }}']].forEach(([k, v]) => {
     const inp = document.createElement('input');
     inp.type = 'hidden'; inp.name = k; inp.value = v;
@@ -125,7 +125,7 @@ function resendOtp() {
   const btn = document.getElementById('resendBtn');
   btn.disabled = true;
   const form = document.createElement('form');
-  form.method = 'POST'; form.action = '/resend_otp';
+  form.method = 'POST'; form.action = '{{ url_for("resend_otp") }}';
   const csrf = document.createElement('input');
   csrf.type = 'hidden'; csrf.name = 'csrf_token'; csrf.value = '{{ csrf_token() }}';
   form.appendChild(csrf);

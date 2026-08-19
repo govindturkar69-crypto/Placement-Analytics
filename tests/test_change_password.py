@@ -41,7 +41,7 @@ class ChangePasswordTests(AppTestCase):
 
         self.assertEqual(response.status_code, 200)
         connection.commit.assert_not_called()
-        self.assertIn(b'at least 6 characters', response.data)
+        self.assertIn(b'at least 8 characters', response.data)
 
     def test_mismatched_confirmation_is_rejected(self):
         connection, cursor = mock_connection()

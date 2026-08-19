@@ -3,6 +3,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from ..extensions import mysql
 from ..decorators import login_required
+from .auth import PASSWORD_RE
 
 
 def register(app):
@@ -10,7 +11,7 @@ def register(app):
     @login_required
     def profile():
         cur = mysql.connection.cursor()
-        cur.execute("SELECT * FROM students WHERE student_id=%s", (session['user_id'],))
+        cur.execute("SELECT student_id, name, email, branch, cgpa, skills FROM students WHERE student_id=%s", (session['user_id'],))
         student = cur.fetchone()
         cur.execute("""
             SELECT c.company_name, c.package, p.year, p.status
@@ -39,9 +40,9 @@ def register(app):
                 flash('Current password is incorrect.', 'danger')
                 return render_template('change_password.html', user_name=session['user_name'])
 
-            if len(new_password) < 6:
+            if not PASSWORD_RE.match(new_password):
                 cur.close()
-                flash('New password must be at least 6 characters.', 'danger')
+                flash('New password must be at least 8 characters and include a letter and a number.', 'danger')
                 return render_template('change_password.html', user_name=session['user_name'])
 
             if new_password != confirm_password:

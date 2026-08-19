@@ -3,8 +3,11 @@ import re
 import secrets
 from datetime import datetime, timedelta
 
+import pymysql
+
 from flask import render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
+
 
 from ..email import send_email
 from ..extensions import mysql, limiter, oauth
@@ -85,7 +88,66 @@ def register(app):
     def index():
         if 'logged_in' in session:
             return redirect(url_for('dashboard'))
-        return redirect(url_for('login'))
+        return render_template('landing.html')
+
+    @app.route('/register', methods=['GET', 'POST'])
+    @limiter.limit("5 per minute", methods=["POST"])
+    def register():
+        if 'logged_in' in session:
+            return redirect(url_for('dashboard'))
+        if request.method == 'POST':
+            name     = request.form.get('name', '').strip()
+            email    = request.form.get('email', '').strip().lower()
+            branch   = request.form.get('branch', '').strip()
+            cgpa_str = request.form.get('cgpa', '').strip()
+            skills   = request.form.get('skills', '').strip()
+            password = request.form.get('password', '')
+            confirm  = request.form.get('confirm_password', '')
+
+            if not name or not email or not branch or not cgpa_str or not password or not confirm:
+                flash('All fields except skills are required.', 'danger')
+                return render_template('register.html')
+
+            if not EMAIL_RE.match(email):
+                flash('Please enter a valid email address.', 'danger')
+                return render_template('register.html')
+
+            try:
+                cgpa = float(cgpa_str)
+                if not (0.0 <= cgpa <= 10.0):
+                    raise ValueError
+            except ValueError:
+                flash('CGPA must be a number between 0.0 and 10.0.', 'danger')
+                return render_template('register.html')
+
+            if not PASSWORD_RE.match(password):
+                flash('Password must be at least 8 characters and include a letter and a number.', 'danger')
+                return render_template('register.html')
+
+            if password != confirm:
+                flash('Passwords do not match.', 'danger')
+                return render_template('register.html')
+
+            cur = mysql.connection.cursor()
+            try:
+                cur.execute(
+                    "INSERT INTO students(name,email,branch,cgpa,skills,password,role)"
+                    " VALUES(%s,%s,%s,%s,%s,%s,'student')",
+                    (name, email, branch, cgpa, skills, generate_password_hash(password))
+                )
+                mysql.connection.commit()
+            except pymysql.err.IntegrityError:
+                mysql.connection.rollback()
+                flash('That email is already registered. Please sign in or use a different email.', 'danger')
+                return render_template('register.html')
+            finally:
+                cur.close()
+
+            logger.info('New student registered: %s', _mask_email(email))
+            flash('Account created successfully! Please sign in with your new credentials.', 'success')
+            return redirect(url_for('login'))
+
+        return render_template('register.html')
 
     @app.route('/login', methods=['GET', 'POST'])
     @limiter.limit("5 per minute", methods=["POST"])

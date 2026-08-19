@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash
 from ..extensions import mysql
 from ..decorators import login_required, admin_required
 from ..utils import any_blank
+from .auth import PASSWORD_RE
 
 
 def register(app):
@@ -43,8 +44,8 @@ def register(app):
             if any_blank(request.form.get('name'), request.form.get('email'), request.form.get('branch')):
                 flash('Name, email, and branch are required.', 'danger')
                 return render_template('add_student.html', user_name=session['user_name'])
-            if len(request.form.get('password', '')) < 6:
-                flash('Password must be at least 6 characters.', 'danger')
+            if not PASSWORD_RE.match(request.form.get('password', '')):
+                flash('Password must be at least 8 characters and include a letter and a number.', 'danger')
                 return render_template('add_student.html', user_name=session['user_name'])
             password = generate_password_hash(request.form['password'])
             cur = mysql.connection.cursor()

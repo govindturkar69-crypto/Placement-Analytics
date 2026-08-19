@@ -27,7 +27,7 @@ class AddStudentPasswordTests(AppTestCase):
 
         self.assertEqual(response.status_code, 200)  # re-renders the form, no insert attempted
         connection.cursor.assert_not_called()
-        self.assertIn(b'at least 6 characters', response.data)
+        self.assertIn(b'at least 8 characters', response.data)
 
     def test_short_password_is_rejected(self):
         connection, _ = mock_connection()
@@ -43,7 +43,7 @@ class AddStudentPasswordTests(AppTestCase):
 
         self.assertEqual(response.status_code, 200)
         connection.cursor.assert_not_called()
-        self.assertIn(b'at least 6 characters', response.data)
+        self.assertIn(b'at least 8 characters', response.data)
 
     def test_valid_password_still_succeeds(self):
         connection, _ = mock_connection()
