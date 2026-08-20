@@ -221,6 +221,131 @@ def register(app):
         session['role']      = user[2]
         return redirect(url_for('dashboard'))
 
+    # ── Google Registration flow ────────────────────────────────────────────
+    # Separate from login/google so the Register page can link here.
+    # Step 1: kick off OAuth (same scopes, different callback URL).
+    # Step 2: callback -- if email already has an account, log them in;
+    #         if email is new, stash name+email in session and go to step 3.
+    # Step 3: collect the fields Google can't supply (branch, CGPA, skills).
+
+    @app.route('/register/google')
+    def register_google():
+        if 'logged_in' in session:
+            return redirect(url_for('dashboard'))
+        if not _google_configured():
+            flash('Google sign-in is not set up for this site yet.', 'danger')
+            return redirect(url_for('register'))
+        redirect_uri = url_for('register_google_callback', _external=True)
+        return oauth.google.authorize_redirect(redirect_uri)
+
+    @app.route('/register/google/callback')
+    def register_google_callback():
+        if not _google_configured():
+            flash('Google sign-in is not set up for this site yet.', 'danger')
+            return redirect(url_for('register'))
+        try:
+            token    = oauth.google.authorize_access_token()
+            userinfo = token.get('userinfo') or {}
+            email    = (userinfo.get('email') or '').strip().lower()
+            name     = (userinfo.get('name') or '').strip()
+        except Exception:
+            email = name = ''
+
+        if not email:
+            flash('Google sign-in failed. Please try again or use your email and password.', 'danger')
+            return redirect(url_for('register'))
+
+        # If there's already an account with this Gmail address, just log in.
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT student_id, name, role FROM students WHERE email=%s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        if user:
+            session.permanent    = True
+            session['logged_in'] = True
+            session['user_id']   = user[0]
+            session['user_name'] = user[1]
+            session['role']      = user[2]
+            flash('Welcome back! You\'ve been signed in with your Google account.', 'success')
+            return redirect(url_for('dashboard'))
+
+        # New email – stash the Google-supplied fields and collect the rest.
+        session['google_pending_email'] = email
+        session['google_pending_name']  = name
+        logger.info('Google registration pending for %s', _mask_email(email))
+        return redirect(url_for('register_google_complete'))
+
+    @app.route('/register/google/complete', methods=['GET', 'POST'])
+    def register_google_complete():
+        """Step 3: collect branch / CGPA / skills then create the account."""
+        email = session.get('google_pending_email')
+        name  = session.get('google_pending_name', '')
+        if not email:
+            # Guard: someone navigated here directly without going through OAuth.
+            flash('Please use the "Continue with Google" button to register.', 'danger')
+            return redirect(url_for('register'))
+
+        if 'logged_in' in session:
+            # Already logged-in; clean up and go to dashboard.
+            session.pop('google_pending_email', None)
+            session.pop('google_pending_name',  None)
+            return redirect(url_for('dashboard'))
+
+        if request.method == 'POST':
+            branch   = request.form.get('branch', '').strip()
+            cgpa_str = request.form.get('cgpa', '').strip()
+            skills   = request.form.get('skills', '').strip()
+
+            if not branch or not cgpa_str:
+                flash('Branch and CGPA are required.', 'danger')
+                return render_template('register_google_complete.html', name=name, email=email)
+
+            try:
+                cgpa = float(cgpa_str)
+                if not (0.0 <= cgpa <= 10.0):
+                    raise ValueError
+            except ValueError:
+                flash('CGPA must be a number between 0.0 and 10.0.', 'danger')
+                return render_template('register_google_complete.html', name=name, email=email)
+
+            # Google-registered accounts have no password; use an unusable hash
+            # so the column stays NOT NULL without enabling password login.
+            unusable_hash = 'google:' + secrets.token_hex(16)
+
+            cur = mysql.connection.cursor()
+            try:
+                cur.execute(
+                    "INSERT INTO students(name, email, branch, cgpa, skills, password, role)"
+                    " VALUES(%s, %s, %s, %s, %s, %s, 'student')",
+                    (name, email, branch, cgpa, skills, unusable_hash)
+                )
+                mysql.connection.commit()
+                student_id = cur.lastrowid
+            except pymysql.err.IntegrityError:
+                mysql.connection.rollback()
+                cur.close()
+                # Race condition: another tab or request registered the same email.
+                flash('That email is already registered. Please sign in instead.', 'danger')
+                session.pop('google_pending_email', None)
+                session.pop('google_pending_name',  None)
+                return redirect(url_for('login'))
+            finally:
+                cur.close()
+
+            # Clear the pending state and log the user straight in.
+            session.pop('google_pending_email', None)
+            session.pop('google_pending_name',  None)
+            session.permanent    = True
+            session['logged_in'] = True
+            session['user_id']   = student_id
+            session['user_name'] = name
+            session['role']      = 'student'
+            logger.info('New student registered via Google: %s', _mask_email(email))
+            flash(f'Welcome, {name}! Your account has been created.', 'success')
+            return redirect(url_for('dashboard'))
+
+        return render_template('register_google_complete.html', name=name, email=email)
+
     @app.route('/forgot_password', methods=['GET', 'POST'])
     @limiter.limit("3 per minute", methods=["POST"])
     def forgot_password():
