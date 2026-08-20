@@ -1,7 +1,7 @@
 from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from ..extensions import mysql
+from ..extensions import mysql, limiter
 from ..decorators import login_required
 from .auth import PASSWORD_RE
 
@@ -25,6 +25,7 @@ def register(app):
 
     @app.route('/change_password', methods=['GET', 'POST'])
     @login_required
+    @limiter.limit("5 per minute", methods=["POST"])
     def change_password():
         if request.method == 'POST':
             current_password = request.form.get('current_password', '')
