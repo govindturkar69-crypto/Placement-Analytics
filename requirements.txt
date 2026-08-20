@@ -1,5 +1,4 @@
-flask==2.3.3
-flask-mysqldb==1.0.1
+flask==3.0.3
 # Was 1.1.0 -- CVE-2024-36039 (CRITICAL): SQL injection via unescaped dict
 # keys in escape_dict(). Not exercised by this app's own queries (all use
 # tuple-style %s parameters, never escape_dict), but the fix is a same-line
@@ -18,7 +17,7 @@ cryptography==50.0.0
 # closing the resource-exhaustion DoS variant fixed only in Werkzeug 3.0.6+
 # needs a Flask 3.x upgrade, which is a bigger compatibility change and is
 # called out separately as a manual/planned action, not applied here.
-Werkzeug==2.3.8
+Werkzeug==3.0.6
 reportlab==4.1.0
 openpyxl==3.1.2
 Flask-Limiter==3.5.0
