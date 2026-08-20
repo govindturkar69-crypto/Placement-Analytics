@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import pymysql
 
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, Response
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -84,6 +84,63 @@ def _issue_otp(email):
 
 
 def register(app):
+    BASE_URL = 'https://placement-analytics.onrender.com'
+
+    @app.route('/robots.txt')
+    def robots_txt():
+        content = (
+            "User-agent: *\n"
+            "Disallow: /dashboard\n"
+            "Disallow: /students\n"
+            "Disallow: /add_student\n"
+            "Disallow: /edit_student/\n"
+            "Disallow: /delete_student/\n"
+            "Disallow: /companies\n"
+            "Disallow: /add_company\n"
+            "Disallow: /edit_company/\n"
+            "Disallow: /delete_company/\n"
+            "Disallow: /placements\n"
+            "Disallow: /add_placement\n"
+            "Disallow: /delete_placement/\n"
+            "Disallow: /analytics\n"
+            "Disallow: /reports\n"
+            "Disallow: /predict\n"
+            "Disallow: /profile\n"
+            "Disallow: /change_password\n"
+            "Disallow: /upload_csv\n"
+            "Disallow: /api/\n"
+            "Disallow: /login/google/callback\n"
+            "Disallow: /register/google/callback\n"
+            "Disallow: /register/google/complete\n"
+            "Allow: /\n"
+            "Allow: /register\n"
+            "Allow: /login\n"
+            "Allow: /forgot_password\n"
+            f"\nSitemap: {BASE_URL}/sitemap.xml\n"
+        )
+        return Response(content, mimetype='text/plain')
+
+    @app.route('/sitemap.xml')
+    def sitemap_xml():
+        pages = [
+            {'loc': f'{BASE_URL}/',          'priority': '1.0', 'changefreq': 'weekly'},
+            {'loc': f'{BASE_URL}/register',   'priority': '0.8', 'changefreq': 'monthly'},
+            {'loc': f'{BASE_URL}/login',      'priority': '0.6', 'changefreq': 'monthly'},
+            {'loc': f'{BASE_URL}/forgot_password', 'priority': '0.3', 'changefreq': 'yearly'},
+        ]
+        lines = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+        for p in pages:
+            lines += [
+                '  <url>',
+                f'    <loc>{p["loc"]}</loc>',
+                f'    <changefreq>{p["changefreq"]}</changefreq>',
+                f'    <priority>{p["priority"]}</priority>',
+                '  </url>',
+            ]
+        lines.append('</urlset>')
+        return Response('\n'.join(lines), mimetype='application/xml')
+
     @app.route('/')
     def index():
         if 'logged_in' in session:

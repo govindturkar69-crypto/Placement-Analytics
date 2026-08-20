@@ -3,11 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Smart Placement Analytics — college placement management with real-time dashboards, ML predictions, and analytics for students and admins.">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0F172A">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
   <title>Smart Placement Analytics — Placement Management Platform</title>
+  <meta name="description" content="Smart Placement Analytics modernizes college placement management with role-based dashboards, real-time analytics, ML-based placement predictions, bulk CSV import, PDF/Excel reports, and OTP-secured accounts.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://placement-analytics.onrender.com/">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Smart Placement Analytics">
+  <meta property="og:title" content="Smart Placement Analytics — College Placement Management Platform">
+  <meta property="og:description" content="Modernize your college placement cell with real-time dashboards, ML predictions, analytics charts, and automated reports. Free for students.">
+  <meta property="og:url" content="https://placement-analytics.onrender.com/">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Smart Placement Analytics — College Placement Management Platform">
+  <meta name="twitter:description" content="Modernize your college placement cell with real-time dashboards, ML predictions, analytics charts, and automated reports. Free for students.">
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Smart Placement Analytics",
+    "url": "https://placement-analytics.onrender.com/",
+    "description": "A full-stack college placement management system with role-based dashboards, real-time analytics, ML-based placement predictor, bulk CSV upload, and automated PDF/Excel reporting.",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Govind Turkar",
+      "url": "https://github.com/govindturkar69-crypto"
+    },
+    "featureList": [
+      "Role-based dashboards for admins and students",
+      "ML-based placement probability predictor",
+      "Real-time analytics with 5 chart types",
+      "Bulk CSV student import",
+      "PDF and Excel report export",
+      "OTP-based password reset",
+      "Google OAuth login"
+    ]
+  }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
@@ -516,7 +559,7 @@
 <body>
 
 <!-- ── NAVIGATION ── -->
-<nav class="nav">
+<nav class="nav" aria-label="Main navigation">
   <a class="nav-brand" href="/">
     <div class="nav-brand-icon">🎓</div>
     <div>
@@ -529,7 +572,7 @@
     <a href="{{ url_for('register') }}" class="nav-btn-primary" id="navRegisterBtn">Get Started →</a>
   </div>
 </nav>
-
+<main id="main-content">
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-badge">
@@ -691,8 +734,8 @@
     <a href="{{ url_for('register') }}">Register</a>
     <a href="{{ url_for('forgot_password') }}">Reset Password</a>
   </div>
-  <div class="footer-copy">© 2026 Smart Placement Analytics. All rights reserved.</div>
+  <small class="footer-copy">© 2026 Smart Placement Analytics. All rights reserved.</small>
 </footer>
-
+</main>
 </body>
 </html>
