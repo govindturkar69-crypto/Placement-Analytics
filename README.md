@@ -4,13 +4,13 @@
 
 # Smart Placement Analytics Platform
 
-**A powerful, full-stack college placement management system with role-based dashboards, real-time analytics, and an ML-based placement predictor.**
+**A full-stack college placement management system with role-based dashboards, analytics, and a weighted placement-readiness predictor.**
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-placement--analytics.onrender.com-2563eb?style=for-the-badge)](https://placement-analytics.onrender.com)
 [![Source](https://img.shields.io/badge/Source-GitHub-181717?style=for-the-badge&logo=github)](https://github.com/govindturkar69-crypto/Placement-Analytics)
 
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-2.3-000000?style=flat-square&logo=flask&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.0.3-000000?style=flat-square&logo=flask&logoColor=white)
 ![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![Render](https://img.shields.io/badge/Deployed-Render-46E3B7?style=flat-square&logo=render&logoColor=white)
 [![Tests](https://github.com/govindturkar69-crypto/Placement-Analytics/actions/workflows/tests.yml/badge.svg)](https://github.com/govindturkar69-crypto/Placement-Analytics/actions/workflows/tests.yml)
@@ -30,9 +30,9 @@ The **Smart Placement Analytics Platform** modernizes how colleges manage their 
 <details open>
 <summary><b>👨‍🎓 Student Experience</b></summary>
 
-- **Self-Registration:** Seamless onboarding with email verification or Google OAuth.
+- **Self-Registration:** Password-based onboarding or optional Google OAuth.
 - **Personalized Dashboard:** Track your placement status, view visiting companies, and monitor trends.
-- **ML Placement Predictor:** Estimate placement chances based on academic and extracurricular metrics.
+- **Placement Predictor:** Estimate readiness with a deterministic weighted scoring rule.
 - **Profile Management:** Highlight skills, CGPA, projects, and internships to calculate a readiness score.
 - **Secure Access:** OTP-based password resets sent directly via email.
 </details>
@@ -49,9 +49,9 @@ The **Smart Placement Analytics Platform** modernizes how colleges manage their 
 
 ---
 
-## 🧠 ML Placement Predictor
+## 🧠 Placement Readiness Predictor
 
-Our weighted six-factor machine learning scoring model accurately estimates placement probability:
+The application uses a transparent six-factor heuristic to produce a readiness estimate. It is not a trained machine-learning model and should not be treated as a calibrated probability:
 
 | Factor | Weight | Impact Area |
 | :--- | :---: | :--- |
@@ -96,7 +96,7 @@ Security is deeply integrated into the platform's architecture:
 
 | Component | Technologies Used |
 | :--- | :--- |
-| **Backend Framework** | Python 3.11+, Flask 2.3 |
+| **Backend Framework** | Python 3.11+, Flask 3.0.3 |
 | **Database** | MySQL |
 | **Frontend** | HTML5, CSS3 (Vanilla CSS with Custom Properties), Chart.js |
 | **Security & Auth** | Werkzeug, Flask-WTF, Flask-Limiter, Google OAuth |
@@ -159,7 +159,9 @@ python -m unittest discover -s tests -v
 ### "Continue with Google" Setup
 To enable Google OAuth for quick registration and login:
 1. Create an **OAuth 2.0 Client ID** (Web application) in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
-2. Add `http://localhost:5000/login/google/callback` to your Authorized redirect URIs.
+2. Add both local callbacks to your Authorized redirect URIs:
+   - `http://localhost:5000/login/google/callback`
+   - `http://localhost:5000/register/google/callback`
 3. Update your `.env`:
    ```env
    GOOGLE_CLIENT_ID=your_client_id
@@ -178,6 +180,8 @@ For OTPs and placement notifications, the platform uses [Resend](https://resend.
 ---
 
 ## 📂 Project Architecture
+
+Detailed implementation documentation is available in [`docs/`](docs/), including product, technical, architecture, database, route/API, UI/UX, and testing references.
 
 ```text
 placement-analytics/
