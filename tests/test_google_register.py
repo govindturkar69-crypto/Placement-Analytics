@@ -80,7 +80,7 @@ class GoogleRegisterTests(unittest.TestCase):
     def test_callback_logs_in_directly_when_email_already_registered(self):
         """If the Google email already has an account, we skip the complete step."""
         connection, cursor = mock_connection()
-        cursor.fetchone.return_value = (5, 'Bob', 'student')
+        cursor.fetchone.return_value = (5, 'Bob', 'student', 'google:test-token')
         with self._configured(), \
              patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch.object(

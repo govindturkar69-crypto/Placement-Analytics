@@ -63,6 +63,23 @@ class UploadCsvTests(AppTestCase):
         self.assertEqual(len(insert_calls), 1)  # only Alice made it to execute()
         self.assertTrue(any('1' in msg and 'added' in msg for _, msg in self.flashes()))
 
+    def test_weak_and_invalid_rows_are_skipped(self):
+        csv_content = (
+            "name,email,branch,cgpa,skills,password\n"
+            "Weak,weak@example.com,CSE,8.0,Python,x\n"
+            "Bad Email,not-an-email,CSE,8.0,Python,secret123\n"
+            "Bad CGPA,bad@example.com,CSE,NaN,Python,secret123\n"
+        )
+        connection, cursor = mock_connection()
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
+            self.client.post(
+                '/upload_csv', data={'csv_file': _csv_file(csv_content)},
+                content_type='multipart/form-data',
+            )
+
+        insert_calls = [c for c in cursor.execute.call_args_list if 'INSERT INTO students' in c.args[0]]
+        self.assertEqual(insert_calls, [])
+
     def test_missing_required_column_is_rejected_before_touching_db(self):
         csv_content = "name,email,branch\nAlice,alice@example.com,CSE\n"
         connection, cursor = mock_connection()

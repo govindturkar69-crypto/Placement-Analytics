@@ -29,7 +29,7 @@ All direct Python dependencies are exact-pinned in `requirements.txt`. Transitiv
 | `MYSQL_PASSWORD` | Yes | MySQL password |
 | `MYSQL_DB` | Yes | Database name |
 | `MYSQL_PORT` | No | Defaults to `3306` |
-| `SECRET_KEY` | Production: yes | Random process-local fallback; a stable value is required for durable sessions |
+| `SECRET_KEY` | Yes | Startup fails unless a stable private value is configured |
 | `SESSION_COOKIE_SECURE` | No | Defaults to `true`; use `false` for plain-HTTP local development |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional pair | Enables Google OIDC login/registration |
 | `RESEND_API_KEY` | Optional | Enables email delivery |
@@ -48,7 +48,7 @@ All direct Python dependencies are exact-pinned in `requirements.txt`. Transitiv
 
 ## Authentication and authorization
 
-Password login reads a student row by email and verifies its Werkzeug hash. Google OIDC uses discovery metadata and `openid email profile`; login requires a pre-existing email, while registration can create one. Flask’s signed cookie session stores `logged_in`, `user_id`, `user_name`, and `role`. `login_required` and `admin_required` enforce access.
+Password login reads a student row by email and verifies its Werkzeug hash. Google OIDC uses discovery metadata and `openid email profile`; login requires a pre-existing email, while registration can create one. Flask’s signed cookie session stores the user identity, role, and an HMAC-backed password version. Protected requests reload the current database role and invalidate deleted accounts or sessions created before a password change.
 
 CSRF protection is global. The application sets HttpOnly, Secure-by-default, SameSite=Lax session cookies and a 30-minute permanent-session lifetime. It emits HSTS on secure requests and additional frame, MIME, XSS, and referrer headers.
 
@@ -81,6 +81,7 @@ python -m unittest discover -s tests -v
 - Rate limiting is per process and resets on restart.
 - Predictor logic is deterministic, hard-coded, and uncalibrated; it is not machine learning.
 - Templates contain substantial inline CSS/JavaScript and CDN dependencies.
+- Password-reset email delivery is synchronous, so known and unknown addresses may have observably different response timing.
 - The SQL schema declares cascading placement deletes, while route messages anticipate foreign-key restriction; deployed behavior depends on actual production schema.
 - No content-security-policy header is configured.
 - No live database, OAuth, email, browser, load, or deployment tests are present.

@@ -37,6 +37,7 @@ class LoginTests(unittest.TestCase):
             self.assertTrue(sess.get('logged_in'))
             self.assertEqual(sess.get('user_id'), 1)
             self.assertEqual(sess.get('role'), 'student')
+            self.assertTrue(sess.get('auth_version'))
 
     def test_wrong_password_is_rejected(self):
         stored_hash = generate_password_hash('the-real-password')
@@ -125,7 +126,8 @@ class AccessControlBoundaryTests(AppTestCase):
     def test_logged_out_user_is_sent_to_login_not_dashboard(self):
         with self.client.session_transaction() as sess:
             sess.clear()
-        response = self.client.get('/students')
+        with patch('placement_analytics.decorators._current_user', return_value=None):
+            response = self.client.get('/students')
 
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login', response.headers.get('Location', ''))

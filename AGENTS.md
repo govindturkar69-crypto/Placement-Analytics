@@ -24,7 +24,7 @@ Read `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, and `docs/API.md` before changi
 
 - Keep `create_app()` as the composition root. Extension instances remain unbound until `init_app()`.
 - Route modules expose `register(app)` and are registered in `placement_analytics/routes/__init__.py`; the project does not use Flask Blueprints.
-- Reuse `login_required`, `admin_required`, `any_blank`, `safe_redirect_back`, `excel_safe`, `send_email`, and the shared extension instances.
+- Reuse `login_required`, `admin_required`, `auth_version`, `any_blank`, `safe_redirect_back`, `excel_safe`, `send_email`, and the shared extension instances.
 - Use parameterized `%s` SQL with tuple arguments. Close cursors and explicitly commit or roll back mutations.
 - Preserve the `app.py` re-exports: tests import `app`, `mysql`, `limiter`, and utility functions from that module.
 - Follow the existing Python style: small module-level helpers, snake_case, direct route functions, four-space indentation, and single-quoted strings in most Python code.
@@ -33,7 +33,7 @@ Read `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, and `docs/API.md` before changi
 ## Security and data rules
 
 - State-changing browser actions must use POST and remain CSRF-protected.
-- Keep authorization server-side. `admin_required` protects administration, analytics, imports, and exports; hiding a UI link is not authorization.
+- Keep authorization server-side. Protected decorators reload the current account role/password version; `admin_required` protects administration, analytics, imports, and exports. Hiding a UI link is not authorization.
 - Never log passwords, OTPs, tokens, API keys, or full reset-email addresses.
 - Passwords use Werkzeug hashes. Google-created accounts store an intentionally unusable `google:` value.
 - Keep same-origin redirect validation, spreadsheet formula neutralization, upload-size limits, secure cookie settings, security headers, and authentication rate limits.

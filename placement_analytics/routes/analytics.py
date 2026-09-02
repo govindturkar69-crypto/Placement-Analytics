@@ -19,6 +19,8 @@ def register(app):
         cd = cur.fetchall()
         cur.execute("SELECT year, COUNT(*) AS cnt FROM placements GROUP BY year ORDER BY year")
         yd = cur.fetchall()
+        cur.execute("SELECT COUNT(DISTINCT student_id) FROM placements")
+        placed_students = cur.fetchone()[0] or 0
         cur.execute("""
             SELECT s.branch, COUNT(*) AS cnt
             FROM placements p JOIN students s ON p.student_id=s.student_id
@@ -61,7 +63,7 @@ def register(app):
             skill_labels=skill_labels,
             skill_values=skill_values,
             kpi_companies=len(company_labels),
-            kpi_placed=sum(year_counts),
+            kpi_placed=placed_students,
             kpi_branches=len(branch_labels),
             kpi_skills=len(skill_labels),
             user_name=session['user_name'])

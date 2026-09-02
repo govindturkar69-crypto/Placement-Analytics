@@ -172,7 +172,8 @@
                 ✏️ Edit
               </a>
               <form method="POST" action="{{ url_for('delete_company', company_id=c[0]) }}"
-                    onsubmit="return confirmDelete('{{ c[1] }}')" style="display:inline">
+                    data-confirm-name="{{ c[1] }}"
+                    onsubmit="return confirmDelete(this.dataset.confirmName)" style="display:inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn-danger">🗑️</button>
               </form>

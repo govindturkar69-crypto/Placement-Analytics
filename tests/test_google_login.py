@@ -64,7 +64,7 @@ class GoogleLoginTests(unittest.TestCase):
 
     def test_callback_logs_in_when_email_matches_an_existing_account(self):
         connection, cursor = mock_connection()
-        cursor.fetchone.return_value = (7, 'Alice', 'student')
+        cursor.fetchone.return_value = (7, 'Alice', 'student', 'google:test-token')
         with self._configured(), \
              patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch.object(

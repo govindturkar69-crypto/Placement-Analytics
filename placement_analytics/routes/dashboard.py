@@ -15,7 +15,7 @@ def register(app):
                 SELECT
                     (SELECT COUNT(*) FROM students)   AS ts,
                     (SELECT COUNT(*) FROM companies)  AS tc,
-                    (SELECT COUNT(*) FROM placements) AS tp,
+                    (SELECT COUNT(DISTINCT student_id) FROM placements) AS tp,
                     (SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS avg_p,
                     (SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS max_p
             """)
@@ -24,7 +24,7 @@ def register(app):
                 SELECT
                     1 AS ts,
                     (SELECT COUNT(*) FROM companies) AS tc,
-                    (SELECT COUNT(*) FROM placements WHERE student_id=%s) AS tp,
+                    (SELECT COUNT(DISTINCT student_id) FROM placements WHERE student_id=%s) AS tp,
                     (SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id WHERE p.student_id=%s) AS avg_p,
                     (SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id WHERE p.student_id=%s) AS max_p
             """, (session['user_id'],) * 3)

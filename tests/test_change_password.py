@@ -68,7 +68,7 @@ class ChangePasswordTests(AppTestCase):
             })
 
         self.assertEqual(response.status_code, 302)
-        self.assertIn('/profile', response.headers.get('Location', ''))
+        self.assertIn('/login', response.headers.get('Location', ''))
         connection.commit.assert_called_once()
         update_calls = [c for c in cursor.execute.call_args_list if 'UPDATE students' in c.args[0]]
         self.assertEqual(len(update_calls), 1)

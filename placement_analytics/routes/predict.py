@@ -1,3 +1,5 @@
+import math
+
 from flask import render_template, request, session, flash
 
 from ..decorators import login_required
@@ -16,6 +18,11 @@ def register(app):
                 backlogs   = int(request.form.get('backlogs', 0))
                 internship = request.form.get('internship', 'no')
                 projects   = int(request.form.get('projects', 0))
+
+                if not math.isfinite(cgpa) or not 0.0 <= cgpa <= 10.0:
+                    raise ValueError('CGPA must be between 0 and 10.')
+                if backlogs < 0 or projects < 0:
+                    raise ValueError('Backlogs and projects cannot be negative.')
 
                 skill_list     = [s.strip().lower() for s in skills.split(',') if s.strip()]
                 skill_count    = len(skill_list)
@@ -95,6 +102,6 @@ def register(app):
                               'internship':round(internship_score),'projects':round(project_score)},
                     'company_matches':company_matches, 'tips':tips
                 }
-            except Exception as e:
+            except (KeyError, TypeError, ValueError) as e:
                 flash(f'Error: {str(e)}', 'danger')
         return render_template('predict.html', result=result, user_name=session['user_name'])

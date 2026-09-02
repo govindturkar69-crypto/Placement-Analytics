@@ -2,7 +2,7 @@ import os
 
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+    SECRET_KEY = os.environ.get('SECRET_KEY')
 
     # Render (and most PaaS) terminate TLS at the edge and forward internally
     # over plain HTTP -- ProxyFix (wired up in create_app) is what makes

@@ -179,7 +179,8 @@
           {% if session.role == 'admin' %}
           <td>
             <form method="POST" action="{{ url_for('delete_placement', placement_id=p[0]) }}"
-                  onsubmit="return confirmDelete('{{ p[1] }}', '{{ p[2] }}')" style="display:inline">
+                  data-student-name="{{ p[1] }}" data-company-name="{{ p[2] }}"
+                  onsubmit="return confirmDelete(this.dataset.studentName, this.dataset.companyName)" style="display:inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn-danger">🗑️</button>
             </form>

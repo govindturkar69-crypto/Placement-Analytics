@@ -33,6 +33,7 @@ class StudentDataScopeTests(AppTestCase):
 
         self.assertEqual(response.status_code, 200)
         calls = cursor.execute.call_args_list
+        self.assertIn('COUNT(DISTINCT student_id)', calls[0].args[0])
         self.assertEqual(calls[0].args[1], (1, 1, 1))
         self.assertIn('WHERE p.student_id=%s', calls[1].args[0])
         self.assertEqual(calls[1].args[1], (1,))
@@ -50,6 +51,7 @@ class StudentDataScopeTests(AppTestCase):
         self.assertIn('WHERE student_id=%s', query)
         self.assertIn('WHERE pl.student_id=%s', query)
         self.assertEqual(params, (1, 1))
+        self.assertIn('COUNT(DISTINCT student_id)', query)
 
 
 if __name__ == '__main__':

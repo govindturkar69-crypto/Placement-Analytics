@@ -114,7 +114,7 @@ The schema says deleting a student or company cascades related placements. Route
 - Company and placement admin forms create/update/delete corresponding rows.
 - Placement creation reads the related student/company after commit for notification content.
 - Dashboards, analytics, reports, and stats use counts, averages, maxima, grouping, and joins.
-- OTP issuance removes expired rows globally and previous rows for the email, then inserts one active hash. Verification increments attempts or deletes a successfully used row. Password reset deletes all rows for the email.
+- OTP issuance removes expired rows globally and previous rows for the email, then inserts one active hash. Verification locks the selected row before incrementing attempts or consuming a successful code. Password reset deletes all rows for the email.
 - No archival, retention, soft delete, backup, transaction retry, or audit mechanism is defined.
 
 ## Seeds and migrations
@@ -125,4 +125,4 @@ There are no migrations. Re-running the SQL is not idempotent for seed inserts e
 
 ## Validation boundaries
 
-Database constraints enforce required values, unique email, and placement referential integrity. Application code additionally validates selected fields, password strength, CGPA during registration, and numeric conversions. The database does not constrain CGPA range, role/status vocabulary, placement year, positive package, skill format, or OTP linkage.
+Database constraints enforce required values, unique email, and placement referential integrity. Registration, admin student forms, and CSV imports validate email syntax, password policy where applicable, and finite CGPA values from 0–10. The database itself does not constrain CGPA range, role/status vocabulary, placement year, positive package, skill format, or OTP linkage.

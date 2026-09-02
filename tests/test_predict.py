@@ -48,6 +48,16 @@ class PredictTests(AppTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Error', response.data)
 
+    def test_impossible_numeric_values_are_rejected(self):
+        for cgpa, backlogs, projects in [('NaN', '0', '1'), ('11', '0', '1'), ('8', '-1', '1'), ('8', '0', '-1')]:
+            with self.subTest(cgpa=cgpa, backlogs=backlogs, projects=projects):
+                response = self.client.post('/predict', data={
+                    'cgpa': cgpa, 'skills': 'Python', 'branch': 'CSE',
+                    'backlogs': backlogs, 'internship': 'no', 'projects': projects,
+                })
+                self.assertEqual(response.status_code, 200)
+                self.assertIn(b'Error', response.data)
+
     def test_get_request_renders_empty_state(self):
         response = self.client.get('/predict')
 

@@ -55,8 +55,9 @@ def register(app):
             cur.execute("UPDATE students SET password=%s WHERE student_id=%s", (hashed, session['user_id']))
             mysql.connection.commit()
             cur.close()
+            session.clear()
             flash('Password changed successfully!', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('login'))
         return render_template('change_password.html', user_name=session['user_name'])
 
     @app.route('/api/stats')
@@ -66,13 +67,13 @@ def register(app):
         if session.get('role') == 'admin':
             cur.execute("""
                 SELECT (SELECT COUNT(*) FROM students) AS s,
-                       (SELECT COUNT(*) FROM placements) AS p,
+                       (SELECT COUNT(DISTINCT student_id) FROM placements) AS p,
                        (SELECT AVG(c.package) FROM placements pl JOIN companies c ON pl.company_id=c.company_id) AS a
             """)
         else:
             cur.execute("""
                 SELECT 1 AS s,
-                       (SELECT COUNT(*) FROM placements WHERE student_id=%s) AS p,
+                       (SELECT COUNT(DISTINCT student_id) FROM placements WHERE student_id=%s) AS p,
                        (SELECT AVG(c.package) FROM placements pl JOIN companies c ON pl.company_id=c.company_id WHERE pl.student_id=%s) AS a
             """, (session['user_id'], session['user_id']))
         r = cur.fetchone(); cur.close()

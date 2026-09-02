@@ -32,7 +32,7 @@ def register(app):
             cur.execute(
                 "INSERT INTO companies(company_name,package,required_skills,visit_date) VALUES(%s,%s,%s,%s)",
                 (request.form['company_name'], package,
-                 request.form['required_skills'], request.form['visit_date'])
+                 request.form['required_skills'], request.form.get('visit_date') or None)
             )
             mysql.connection.commit()
             cur.close()
@@ -64,7 +64,7 @@ def register(app):
                 UPDATE companies SET company_name=%s, package=%s, required_skills=%s, visit_date=%s
                 WHERE company_id=%s
             """, (request.form['company_name'], package,
-                  request.form['required_skills'], request.form['visit_date'], company_id))
+                  request.form['required_skills'], request.form.get('visit_date') or None, company_id))
             mysql.connection.commit()
             cur.close()
             flash('Company updated successfully!', 'success')

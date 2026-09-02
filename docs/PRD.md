@@ -22,7 +22,7 @@ The product centralizes placement records that would otherwise be scattered acro
 | Role | Implemented capabilities |
 | --- | --- |
 | Public visitor | View landing page, register, sign in, begin password reset, access robots/sitemap resources |
-| Student | View dashboard, companies, all placement rows, own profile/history, change password, use predictor, call stats JSON endpoint |
+| Student | View dashboard, companies, own placement rows/profile/history, change password, use predictor, call own-scoped stats JSON endpoint |
 | Admin | All authenticated views plus student/company/placement management, CSV import, analytics, PDF report, and Excel export |
 
 Authorization is enforced by route decorators. There is no role-management UI.
@@ -31,7 +31,7 @@ Authorization is enforced by route decorators. There is no role-management UI.
 
 1. **Password registration:** visitor supplies name, email, branch, CGPA, optional skills, password, and confirmation; valid unique data creates a student account, then redirects to sign-in.
 2. **Google registration:** Google provides name/email; a returning email signs in, while a new email supplies branch, CGPA, and skills before account creation.
-3. **Authentication:** a password or matching Google identity establishes a session containing user ID, name, and role.
+3. **Authentication:** a password or matching Google identity establishes a signed session whose account, role, and password version are revalidated on protected requests.
 4. **Password recovery:** user submits an email, receives a six-digit OTP when the account exists, verifies it within limits, and sets a new password.
 5. **Placement administration:** admin creates students and companies, records a placement, and the system makes a best-effort email notification.
 6. **Insight/reporting:** admin views aggregate charts or downloads PDF/Excel representations of current database data.
@@ -48,7 +48,7 @@ Authorization is enforced by route decorators. There is no role-management UI.
 | Companies | Authenticated users can list companies; admin can create, edit, and delete them |
 | Placements | Authenticated users can list placements; admin can create/delete rows and trigger a non-blocking notification email |
 | Analytics | Admin receives company, year, branch, package, and required-skill aggregates rendered as five charts |
-| Predictor | Authenticated user supplies CGPA, skills, branch, backlogs, internship status, and project count; the server returns weighted scores, a chance percentage, company tiers, and tips |
+| Predictor | Authenticated user supplies CGPA 0–10, skills, branch, non-negative backlogs, internship status, and non-negative project count; the server returns weighted scores, a chance percentage, company tiers, and tips |
 | Reports | Admin can download a placement PDF and a three-sheet XLSX workbook |
 | Profile | Authenticated user can view the student row corresponding to the session ID, placement history, and change a password |
 
@@ -77,5 +77,4 @@ Inputs include HTML forms, a UTF-8 CSV upload (maximum total request size 16 MB)
 
 Implemented scope is the web application and four-table MySQL schema described above. Not implemented: email verification during ordinary registration, trained machine learning, job applications, interview scheduling, notifications inbox, audit log, role administration, REST CRUD API, live updates, migration framework, live-database integration tests, browser E2E tests, or measured coverage reporting.
 
-Current limitations include hard-coded predictor rules/company tiers, hard-coded production URL in robots/sitemap, in-process rate-limit state, embedded template CSS/JavaScript, no database migration history, no placement uniqueness constraint, and data views that may expose all placement rows to students. Unknown / not determinable from repository: institutional policy, production database state, production uptime, and actual accessibility conformance.
-
+Current limitations include hard-coded predictor rules/company tiers, hard-coded production URL in robots/sitemap, in-process rate-limit state, embedded template CSS/JavaScript, no database migration history, and no placement uniqueness constraint. Unknown / not determinable from repository: institutional policy, production database state, production uptime, and actual accessibility conformance.

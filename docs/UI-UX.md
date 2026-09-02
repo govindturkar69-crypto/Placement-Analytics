@@ -28,7 +28,7 @@ The public landing page and 404/500 pages are standalone. Visual conventions use
 | Add/edit forms | Admin | Student, company, and placement fields |
 | Errors | Public | Branded 404 and 500 recovery pages |
 
-The sidebar shows dashboard and predictor to both roles. Admin navigation includes students, bulk upload, companies, placements, and analytics. Student navigation includes companies, “My Placements,” and profile. Despite the label “My Placements,” `/placements` currently renders all placement rows.
+The sidebar shows dashboard and predictor to both roles. Admin navigation includes students, bulk upload, companies, placements, and analytics. Student navigation includes companies, “My Placements,” and profile. Student placement views are scoped to the signed-in student.
 
 ## Forms and interactions
 
@@ -69,4 +69,3 @@ No conformance level should be claimed from repository evidence.
 Implemented: responsive shells, role-specific navigation, persistent dark mode, client-side table filters, server flashes, empty/error pages, animated dashboard/predictor/chart presentation, and reusable shared CSS patterns.
 
 Not implemented: SPA transitions, live updates, user-configurable dashboards, localization, notification center, field-level validation framework, offline behavior, automated accessibility testing, or a standalone design-system/component library.
-

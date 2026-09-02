@@ -2,7 +2,7 @@
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -45,6 +45,12 @@ class AppTestCase(unittest.TestCase):
             sess['role'] = self.role
             sess['user_id'] = 1
             sess['user_name'] = 'Admin'
+        self.auth_patch = patch(
+            'placement_analytics.decorators._current_user',
+            return_value=('Admin', self.role, 'test-password-hash'),
+        )
+        self.auth_patch.start()
+        self.addCleanup(self.auth_patch.stop)
 
     def flashes(self):
         with self.client.session_transaction() as sess:

@@ -884,9 +884,10 @@
         <a href="{{ url_for('change_password') }}" class="footer-btn" data-tooltip="Change password">
           🔑
         </a>
-        <a href="{{ url_for('logout') }}" class="footer-btn logout" data-tooltip="Logout">
-          🚪 Logout
-        </a>
+        <form method="POST" action="{{ url_for('logout') }}" style="display:inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="footer-btn logout" data-tooltip="Logout">🚪 Logout</button>
+        </form>
       </div>
     </div>
   </aside>

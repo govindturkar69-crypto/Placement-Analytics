@@ -57,7 +57,7 @@ flowchart TD
 
 1. Reverse-proxy metadata is normalized by `ProxyFix`.
 2. Flask matches a route; Flask-Limiter and global CSRF protection apply where relevant.
-3. A decorator may redirect anonymous users or non-admin users.
+3. A decorator reloads the current account role/password version, invalidates stale sessions, and may redirect anonymous or non-admin users.
 4. The route validates form/query/session data, obtains the context-scoped MySQL connection, and runs parameterized SQL.
 5. Mutations commit explicitly; selected integrity failures roll back.
 6. The route returns HTML, redirect, JSON, text/XML, PDF, or XLSX. Email requests are synchronous but best-effort.
@@ -91,7 +91,7 @@ Password reset creates a hashed OTP in `password_otps`, emails the plaintext cod
 
 - Dashboard and analytics read aggregates and joined placement rows.
 - Admin CRUD writes `students`, `companies`, and `placements` directly.
-- CSV import decodes UTF-8, requires six headers, hashes each password, skips failing rows, and commits the batch.
+- CSV import decodes UTF-8, requires six headers, applies the same email/password/CGPA rules as individual creation, hashes each password, skips failing rows, and commits the batch.
 - Predictor does not access the database; it scores request fields using hard-coded thresholds and weights.
 - PDF/XLSX generation reads current joined data into memory and returns an attachment.
 - `/api/stats` returns aggregate counts/rates as JSON.
@@ -99,4 +99,3 @@ Password reset creates a hashed OTP in `password_otps`, emails the plaintext cod
 ## Important architectural constraints
 
 MySQL is the only persistent state. Sessions are client-side signed cookies; rate-limit counters are in process memory. Resend and Google are optional integrations. Deployment topology beyond a single proxied Flask process is unknown / not determinable from repository.
-

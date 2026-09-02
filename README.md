@@ -21,7 +21,7 @@
 
 ## 🎯 Overview
 
-The **Smart Placement Analytics Platform** modernizes how colleges manage their placement drives. Built for performance and security, it provides two distinct, highly optimized experiences: one for the **Placement Cell (Admins)** to track data, generate reports, and manage companies, and another for **Students** to register, monitor their status, and predict their placement chances using Machine Learning.
+The **Smart Placement Analytics Platform** modernizes how colleges manage their placement drives. It provides two distinct experiences: one for the **Placement Cell (Admins)** to track data, generate reports, and manage companies, and another for **Students** to register, monitor their status, and estimate placement readiness using a transparent deterministic scoring rule.
 
 ---
 
@@ -81,12 +81,12 @@ Admins have access to a rich, interactive data visualization suite:
 
 Security is deeply integrated into the platform's architecture:
 
-- **Authentication:** Passwords securely hashed with `pbkdf2:sha256` (Werkzeug).
+- **Authentication:** Passwords use Werkzeug's adaptive password hashing; protected requests revalidate the current database role and password version.
 - **Protection Against Attacks:**
   - **CSRF:** Flask-WTF tokens secure every state-changing form.
   - **SQLi:** Parameterized queries used globally.
   - **XSS:** Jinja autoescaping and safe JSON serialization.
-- **Session Security:** `HttpOnly`, `Secure`, and `SameSite=Lax` cookies with a 30-minute idle timeout.
+- **Session Security:** `HttpOnly`, `Secure`, and `SameSite=Lax` cookies with a 30-minute permanent-session lifetime; password changes, account deletion, and role downgrades invalidate stale authorization.
 - **Rate Limiting:** IP-based throttling on authentication and password reset routes.
 - **Transport Security:** Enforced HSTS and strict security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`).
 
@@ -141,6 +141,7 @@ MYSQL_DB=placement_db
 MYSQL_PORT=3306
 SECRET_KEY=your_super_secret_key
 ```
+`SECRET_KEY` is mandatory. Startup fails when it is missing so deployments cannot silently use an unstable signing key.
 
 ### 4. Run the Application
 ```bash
@@ -189,7 +190,7 @@ Detailed implementation documentation is available in [`docs/`](docs/), includin
 placement-analytics/
 ├── app.py                      # Application entry point
 ├── database.sql                # Schema & sample company data
-├── .env                        # Environment configurations
+├── .env                        # Local ignored environment configuration (never commit)
 ├── placement_analytics/        # Core application package
 │   ├── __init__.py             # App factory & initialization
 │   ├── routes/                 # Blueprint-style modular routes

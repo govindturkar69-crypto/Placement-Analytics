@@ -67,6 +67,17 @@ class AddCompanyRequiredFieldsTests(AppTestCase):
         connection.cursor.assert_not_called()
         self.assertIn(b'required', response.data)
 
+    def test_blank_visit_date_is_stored_as_null(self):
+        connection, cursor = mock_connection()
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
+            response = self.client.post('/add_company', data={
+                'company_name': 'Acme', 'package': '10',
+                'required_skills': 'Python', 'visit_date': '',
+            })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNone(cursor.execute.call_args.args[1][3])
+
 
 class EditCompanyRequiredFieldsTests(AppTestCase):
     def test_blank_company_name_is_rejected(self):

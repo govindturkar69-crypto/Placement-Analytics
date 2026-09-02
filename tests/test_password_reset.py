@@ -119,6 +119,7 @@ class VerifyOtpTests(OtpFlowTestCase):
         self.assertIn(b'incorrect or has expired', response.data)
         update_calls = [c for c in cursor.execute.call_args_list if 'attempts=attempts+1' in c.args[0]]
         self.assertEqual(len(update_calls), 1)
+        self.assertTrue(any('FOR UPDATE' in c.args[0] for c in cursor.execute.call_args_list))
 
     def test_expired_code_is_rejected(self):
         self._set_reset_session()

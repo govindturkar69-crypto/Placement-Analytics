@@ -16,7 +16,7 @@ This is primarily a server-rendered HTML application, not a REST API. Unless not
 | `GET /register/google/callback` | Consumes provider result | Public | Existing email creates session; new email stores pending name/email; failure redirects register |
 | `GET, POST /register/google/complete` | `branch`, `cgpa`, optional `skills`; requires pending session | Pending Google session | Valid POST inserts student with unusable password, signs in, redirects dashboard; validation rerenders; duplicate redirects login |
 | `GET, POST /login` | `email`, `password`, optional `remember_me` | Public | Valid POST sets session and redirects dashboard; invalid returns `200`; POST limited 5/min |
-| `GET /logout` | Clears session | Public | Redirects login; side effect occurs on GET |
+| `POST /logout` | Clears session | Public, CSRF | Redirects login |
 | `GET /login/google` | Starts Google OIDC login | Public | Redirects provider or login when unconfigured |
 | `GET /login/google/callback` | Matches provider email to existing student | Public | Sets session and redirects dashboard, otherwise login error |
 | `GET, POST /forgot_password` | `email` | Public | Valid-format POST issues OTP only for known user, stores reset session, redirects verify; identical navigation for unknown user; POST limited 3/min |
@@ -33,19 +33,19 @@ Google callback query parameters and provider error shapes are handled by Authli
 | `GET /dashboard` | Counts, package aggregates, recent rows, role-specific notifications | A | `200` dashboard |
 | `GET /companies` | All companies ordered by visit date | A | `200` list |
 | `GET /placements` | Joined placement rows ordered by year | A | `200` list; admins see all rows and students see only their own |
-| `GET, POST /predict` | `cgpa`, comma-separated `skills`, `branch`, integer `backlogs`, `internship=yes/no`, integer `projects` | A | `200`; POST calculates deterministic scores; parsing errors flash and render |
+| `GET, POST /predict` | CGPA 0–10, comma-separated `skills`, `branch`, non-negative integer `backlogs`, `internship=yes/no`, non-negative integer `projects` | A | `200`; POST calculates deterministic scores; invalid values flash and render |
 | `GET /profile` | Session user ID | A | `200` profile and own placement rows |
-| `GET, POST /change_password` | `current_password`, `new_password`, `confirm_password` | A | Valid POST updates password and redirects profile; errors rerender; POST limited 5/min |
+| `GET, POST /change_password` | `current_password`, `new_password`, `confirm_password` | A | Valid POST updates password, invalidates existing sessions, and redirects login; errors rerender; POST limited 5/min |
 
 ## Admin routes
 
 | Method/path | Purpose / input | Validation, result, side effects |
 | --- | --- | --- |
 | `GET /students?page=N` | Paginated student list | `page` is typed as int; 20 rows/page; `200` |
-| `GET, POST /add_student` | Name, email, branch, CGPA, skills, password | Required text/password pattern/numeric conversion; unique violation rerenders; success inserts and redirects |
-| `GET, POST /edit_student/<student_id>` | Editable name/email/branch/CGPA/skills | Missing row or duplicate redirects with flash; success updates |
+| `GET, POST /add_student` | Name, email, branch, CGPA 0–10, skills, password | Required fields, email syntax, CGPA bounds, password pattern, and uniqueness are enforced; success inserts and redirects |
+| `GET, POST /edit_student/<student_id>` | Editable name/email/branch/CGPA 0–10/skills | Required fields, email syntax, CGPA bounds, missing rows, and duplicate emails are handled |
 | `POST /delete_student/<student_id>` | Delete row | Commits delete; caught integrity failure rolls back; redirects students |
-| `GET, POST /upload_csv` | Multipart field `csv_file`; UTF-8 `.csv`; headers `name,email,branch,cgpa,skills,password` | Empty/missing/wrong extension rejected; per-row failures skipped; valid passwords hashed; batch commits; max request 16 MB |
+| `GET, POST /upload_csv` | Multipart field `csv_file`; UTF-8 `.csv`; headers `name,email,branch,cgpa,skills,password` | Each row enforces required fields, email syntax, CGPA 0–10, and password policy; invalid rows are skipped; batch commits; max request 16 MB |
 | `GET, POST /add_company` | `company_name`, numeric `package`, `required_skills`, `visit_date` | Name and number checked; success inserts |
 | `GET, POST /edit_company/<company_id>` | Same fields | Missing row redirects; success updates |
 | `POST /delete_company/<company_id>` | Delete row | Commits or catches integrity failure and rolls back |
@@ -70,12 +70,12 @@ Admin authorization failures redirect dashboard; anonymous access redirects logi
 {
   "total_students": 7,
   "total_placed": 9,
-  "placement_rate": 128.6,
+  "placement_rate": 85.7,
   "avg_package": 21.83
 }
 ```
 
-Values above illustrate the response shape using derivable sample concepts; live values depend on data. `total_placed` counts placement rows, so the rate can exceed 100% when a student has multiple placements.
+Values above illustrate the response shape; live values depend on data. `total_placed` counts distinct placed students.
 
 ## Error behavior
 

@@ -28,7 +28,7 @@ def register(app):
         pl = cur.fetchall()
         cur.execute("""
             SELECT (SELECT COUNT(*) FROM students) AS ts,
-                   (SELECT COUNT(*) FROM placements) AS tp,
+                   (SELECT COUNT(DISTINCT student_id) FROM placements) AS tp,
                    (SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS ap,
                    (SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS mp
         """)

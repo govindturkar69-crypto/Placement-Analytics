@@ -16,6 +16,8 @@ from .routes import register_all
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')
     app.config.from_object(Config)
+    if not app.config.get('SECRET_KEY'):
+        raise RuntimeError('SECRET_KEY must be set to a stable, private value')
 
     # Render (and most PaaS) terminate TLS at the edge and forward internally
     # over plain HTTP -- without this, request.remote_addr is always the
@@ -66,6 +68,7 @@ def create_app():
                 response.headers['Content-Length']   = len(response.get_data())
             except Exception:
                 pass
+        response.vary.add('Accept-Encoding')
         return response
 
     return app

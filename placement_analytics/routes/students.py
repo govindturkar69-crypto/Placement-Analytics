@@ -1,5 +1,6 @@
 import csv
 import io
+import math
 
 import pymysql
 from flask import render_template, request, redirect, url_for, session, flash
@@ -8,14 +9,14 @@ from werkzeug.security import generate_password_hash
 from ..extensions import mysql
 from ..decorators import admin_required
 from ..utils import any_blank
-from .auth import PASSWORD_RE
+from .auth import EMAIL_RE, PASSWORD_RE
 
 
 def register(app):
     @app.route('/students')
     @admin_required
     def students():
-        page     = request.args.get('page', 1, type=int)
+        page     = max(1, request.args.get('page', 1, type=int))
         per_page = 20
         offset   = (page - 1) * per_page
         cur      = mysql.connection.cursor()
@@ -38,11 +39,16 @@ def register(app):
         if request.method == 'POST':
             try:
                 cgpa = float(request.form['cgpa'])
+                if not math.isfinite(cgpa) or not 0.0 <= cgpa <= 10.0:
+                    raise ValueError
             except ValueError:
-                flash('CGPA must be a number.', 'danger')
+                flash('CGPA must be a number between 0.0 and 10.0.', 'danger')
                 return render_template('add_student.html', user_name=session['user_name'])
             if any_blank(request.form.get('name'), request.form.get('email'), request.form.get('branch')):
                 flash('Name, email, and branch are required.', 'danger')
+                return render_template('add_student.html', user_name=session['user_name'])
+            if not EMAIL_RE.match(request.form['email'].strip().lower()):
+                flash('Please enter a valid email address.', 'danger')
                 return render_template('add_student.html', user_name=session['user_name'])
             if not PASSWORD_RE.match(request.form.get('password', '')):
                 flash('Password must be at least 8 characters and include a letter and a number.', 'danger')
@@ -52,7 +58,7 @@ def register(app):
             try:
                 cur.execute(
                     "INSERT INTO students(name,email,branch,cgpa,skills,password) VALUES(%s,%s,%s,%s,%s,%s)",
-                    (request.form['name'], request.form['email'], request.form['branch'],
+                    (request.form['name'], request.form['email'].strip().lower(), request.form['branch'],
                      cgpa, request.form['skills'], password)
                 )
                 mysql.connection.commit()
@@ -73,13 +79,19 @@ def register(app):
         if request.method == 'POST':
             try:
                 cgpa = float(request.form['cgpa'])
+                if not math.isfinite(cgpa) or not 0.0 <= cgpa <= 10.0:
+                    raise ValueError
             except ValueError:
                 cur.close()
-                flash('CGPA must be a number.', 'danger')
+                flash('CGPA must be a number between 0.0 and 10.0.', 'danger')
                 return redirect(url_for('edit_student', student_id=student_id))
             if any_blank(request.form.get('name'), request.form.get('email'), request.form.get('branch')):
                 cur.close()
                 flash('Name, email, and branch are required.', 'danger')
+                return redirect(url_for('edit_student', student_id=student_id))
+            if not EMAIL_RE.match(request.form['email'].strip().lower()):
+                cur.close()
+                flash('Please enter a valid email address.', 'danger')
                 return redirect(url_for('edit_student', student_id=student_id))
             try:
                 cur.execute("SELECT 1 FROM students WHERE student_id=%s", (student_id,))
@@ -89,7 +101,7 @@ def register(app):
                 cur.execute("""
                     UPDATE students SET name=%s, email=%s, branch=%s, cgpa=%s, skills=%s
                     WHERE student_id=%s
-                """, (request.form['name'], request.form['email'], request.form['branch'],
+                """, (request.form['name'], request.form['email'].strip().lower(), request.form['branch'],
                       cgpa, request.form['skills'], student_id))
                 mysql.connection.commit()
                 flash('Student updated successfully!', 'success')
@@ -153,12 +165,23 @@ def register(app):
                 # and turns a 500-row upload from 500 round-trips into 1.
                 for row in rows:
                     try:
+                        name = str(row['name'] or '').strip()
+                        email = str(row['email'] or '').strip().lower()
+                        branch = str(row['branch'] or '').strip()
+                        skills = str(row['skills'] or '').strip()
+                        raw_password = str(row['password'] or '')
+                        cgpa = float(row['cgpa'])
+                        if (any_blank(name, email, branch)
+                                or not EMAIL_RE.match(email)
+                                or not PASSWORD_RE.match(raw_password)
+                                or not math.isfinite(cgpa)
+                                or not 0.0 <= cgpa <= 10.0):
+                            raise ValueError
                         cur.execute("""
                             INSERT INTO students(name,email,branch,cgpa,skills,password,role)
                             VALUES(%s,%s,%s,%s,%s,%s,'student')
-                        """, (str(row['name']), str(row['email']), str(row['branch']),
-                              float(row['cgpa']), str(row['skills']),
-                              generate_password_hash(str(row['password']))))
+                        """, (name, email, branch, cgpa, skills,
+                              generate_password_hash(raw_password)))
                         success += 1
                     except Exception:
                         errors += 1

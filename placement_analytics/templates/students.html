@@ -136,7 +136,8 @@
             <div style="display:flex;gap:6px">
               <a href="{{ url_for('edit_student', student_id=s[0]) }}" class="btn-edit">✏️ Edit</a>
               <form method="POST" action="{{ url_for('delete_student', student_id=s[0]) }}"
-                    onsubmit="return confirmDelete('{{ s[1] }}')" style="display:inline">
+                    data-confirm-name="{{ s[1] }}"
+                    onsubmit="return confirmDelete(this.dataset.confirmName)" style="display:inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn-danger">🗑️</button>
               </form>

@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..email import _mask_email, send_email
 from ..extensions import mysql, limiter, oauth
+from ..decorators import auth_version
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,15 @@ OTP_RESEND_COOLDOWN_SECONDS = 60
 OTP_VERIFIED_TTL_MINUTES = 10
 
 INVALID_OTP_MESSAGE = 'That code is incorrect or has expired. Please try again or request a new one.'
+
+
+def _sign_in(user, permanent=False):
+    session.permanent = permanent
+    session['logged_in'] = True
+    session['user_id'] = user[0]
+    session['user_name'] = user[1]
+    session['role'] = user[2]
+    session['auth_version'] = auth_version(user[3])
 
 
 def _generate_otp():
@@ -213,16 +223,12 @@ def register(app):
             user = cur.fetchone()
             cur.close()
             if user and check_password_hash(user[3], password):
-                session.permanent    = request.form.get('remember_me') == 'on'
-                session['logged_in'] = True
-                session['user_id']   = user[0]
-                session['user_name'] = user[1]
-                session['role']      = user[2]
+                _sign_in(user, request.form.get('remember_me') == 'on')
                 return redirect(url_for('dashboard'))
             flash('Invalid email or password.', 'danger')
         return render_template('login.html')
 
-    @app.route('/logout')
+    @app.route('/logout', methods=['POST'])
     def logout():
         session.clear()
         return redirect(url_for('login'))
@@ -254,18 +260,14 @@ def register(app):
             return redirect(url_for('login'))
 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT student_id, name, role FROM students WHERE email=%s", (email,))
+        cur.execute("SELECT student_id, name, role, password FROM students WHERE email=%s", (email,))
         user = cur.fetchone()
         cur.close()
         if not user:
             flash(f'No account found for {email}. Contact your placement cell admin.', 'danger')
             return redirect(url_for('login'))
 
-        session.permanent    = True
-        session['logged_in'] = True
-        session['user_id']   = user[0]
-        session['user_name'] = user[1]
-        session['role']      = user[2]
+        _sign_in(user, True)
         return redirect(url_for('dashboard'))
 
     # ── Google Registration flow ────────────────────────────────────────────
@@ -304,15 +306,11 @@ def register(app):
 
         # If there's already an account with this Gmail address, just log in.
         cur = mysql.connection.cursor()
-        cur.execute("SELECT student_id, name, role FROM students WHERE email=%s", (email,))
+        cur.execute("SELECT student_id, name, role, password FROM students WHERE email=%s", (email,))
         user = cur.fetchone()
         cur.close()
         if user:
-            session.permanent    = True
-            session['logged_in'] = True
-            session['user_id']   = user[0]
-            session['user_name'] = user[1]
-            session['role']      = user[2]
+            _sign_in(user, True)
             flash('Welcome back! You\'ve been signed in with your Google account.', 'success')
             return redirect(url_for('dashboard'))
 
@@ -382,11 +380,7 @@ def register(app):
             # Clear the pending state and log the user straight in.
             session.pop('google_pending_email', None)
             session.pop('google_pending_name',  None)
-            session.permanent    = True
-            session['logged_in'] = True
-            session['user_id']   = student_id
-            session['user_name'] = name
-            session['role']      = 'student'
+            _sign_in((student_id, name, 'student', unusable_hash), True)
             logger.info('New student registered via Google: %s', _mask_email(email))
             flash(f'Welcome, {name}! Your account has been created.', 'success')
             return redirect(url_for('dashboard'))
@@ -424,7 +418,7 @@ def register(app):
             cur = mysql.connection.cursor()
             cur.execute(
                 "SELECT id, otp_hash, expires_at, attempts FROM password_otps "
-                "WHERE email=%s ORDER BY created_at DESC LIMIT 1",
+                "WHERE email=%s ORDER BY created_at DESC LIMIT 1 FOR UPDATE",
                 (email,)
             )
             row = cur.fetchone()
@@ -437,7 +431,7 @@ def register(app):
                         and check_password_hash(otp_hash, code)):
                     valid = True
                     cur.execute("DELETE FROM password_otps WHERE id=%s", (otp_id,))  # one-time use
-                else:
+                elif attempts < OTP_MAX_ATTEMPTS:
                     cur.execute("UPDATE password_otps SET attempts=attempts+1 WHERE id=%s", (otp_id,))
             mysql.connection.commit()
             cur.close()
