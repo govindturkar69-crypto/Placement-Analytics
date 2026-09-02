@@ -1,4 +1,4 @@
-"""One-time helper: hash plain-text passwords in students table after database.sql import."""
+"""Legacy helper: hash any existing plaintext passwords in the students table."""
 import os
 import sys
 

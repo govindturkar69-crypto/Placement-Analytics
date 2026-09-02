@@ -125,9 +125,11 @@ pip install -r requirements.txt
 ### 2. Database Setup
 ```bash
 mysql -u root -p < database.sql
-python scripts/init_passwords.py
 ```
-*(The init script securely hashes the plain-text passwords stored in the seed database).*
+Register the initial user, then promote it to administrator directly in MySQL:
+```sql
+UPDATE students SET role='admin' WHERE email='your-admin@example.com';
+```
 
 ### 3. Environment Configuration
 Create a `.env` file in the project root:
@@ -186,7 +188,7 @@ Detailed implementation documentation is available in [`docs/`](docs/), includin
 ```text
 placement-analytics/
 ├── app.py                      # Application entry point
-├── database.sql                # Schema & seed data
+├── database.sql                # Schema & sample company data
 ├── .env                        # Environment configurations
 ├── placement_analytics/        # Core application package
 │   ├── __init__.py             # App factory & initialization

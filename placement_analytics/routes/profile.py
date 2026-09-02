@@ -63,11 +63,18 @@ def register(app):
     @login_required
     def api_stats():
         cur = mysql.connection.cursor()
-        cur.execute("""
-            SELECT (SELECT COUNT(*) FROM students) AS s,
-                   (SELECT COUNT(*) FROM placements) AS p,
-                   (SELECT AVG(c.package) FROM placements pl JOIN companies c ON pl.company_id=c.company_id) AS a
-        """)
+        if session.get('role') == 'admin':
+            cur.execute("""
+                SELECT (SELECT COUNT(*) FROM students) AS s,
+                       (SELECT COUNT(*) FROM placements) AS p,
+                       (SELECT AVG(c.package) FROM placements pl JOIN companies c ON pl.company_id=c.company_id) AS a
+            """)
+        else:
+            cur.execute("""
+                SELECT 1 AS s,
+                       (SELECT COUNT(*) FROM placements WHERE student_id=%s) AS p,
+                       (SELECT AVG(c.package) FROM placements pl JOIN companies c ON pl.company_id=c.company_id WHERE pl.student_id=%s) AS a
+            """, (session['user_id'], session['user_id']))
         r = cur.fetchone(); cur.close()
         students, placed, avg_pkg = r[0] or 0, r[1] or 0, r[2] or 0
         return jsonify({

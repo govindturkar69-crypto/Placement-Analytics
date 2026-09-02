@@ -9,15 +9,25 @@ def register(app):
     @login_required
     def dashboard():
         cur = mysql.connection.cursor()
-        # Single optimized query
-        cur.execute("""
-            SELECT
-                (SELECT COUNT(*) FROM students)   AS ts,
-                (SELECT COUNT(*) FROM companies)  AS tc,
-                (SELECT COUNT(*) FROM placements) AS tp,
-                (SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS avg_p,
-                (SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS max_p
-        """)
+        is_admin = session.get('role') == 'admin'
+        if is_admin:
+            cur.execute("""
+                SELECT
+                    (SELECT COUNT(*) FROM students)   AS ts,
+                    (SELECT COUNT(*) FROM companies)  AS tc,
+                    (SELECT COUNT(*) FROM placements) AS tp,
+                    (SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS avg_p,
+                    (SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id) AS max_p
+            """)
+        else:
+            cur.execute("""
+                SELECT
+                    1 AS ts,
+                    (SELECT COUNT(*) FROM companies) AS tc,
+                    (SELECT COUNT(*) FROM placements WHERE student_id=%s) AS tp,
+                    (SELECT AVG(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id WHERE p.student_id=%s) AS avg_p,
+                    (SELECT MAX(c.package) FROM placements p JOIN companies c ON p.company_id=c.company_id WHERE p.student_id=%s) AS max_p
+            """, (session['user_id'],) * 3)
         s = cur.fetchone()
         total_students   = s[0] or 0
         total_companies  = s[1] or 0
@@ -25,17 +35,23 @@ def register(app):
         avg_package      = s[3] or 0
         max_package      = s[4] or 0
 
-        cur.execute("""
+        recent_query = """
             SELECT s.name, c.company_name, c.package, p.year, p.status
             FROM placements p
             JOIN students s ON p.student_id=s.student_id
             JOIN companies c ON p.company_id=c.company_id
-            ORDER BY p.placement_id DESC LIMIT 5
-        """)
+        """
+        if is_admin:
+            cur.execute(recent_query + " ORDER BY p.placement_id DESC LIMIT 5")
+        else:
+            cur.execute(
+                recent_query + " WHERE p.student_id=%s ORDER BY p.placement_id DESC LIMIT 5",
+                (session['user_id'],),
+            )
         recent = cur.fetchall()
 
         notifications = []
-        if session.get('role') == 'admin':
+        if is_admin:
             cur.execute("""
                 SELECT s.name, c.company_name, c.package, p.status
                 FROM placements p

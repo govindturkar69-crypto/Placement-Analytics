@@ -119,7 +119,7 @@ The schema says deleting a student or company cascades related placements. Route
 
 ## Seeds and migrations
 
-`database.sql` creates database `placement_db` and inserts seven students, seven companies, and nine placements. Seed passwords are stored as plaintext values; the comment directs operators to run `scripts/init_passwords.py`. The literal values are intentionally omitted here.
+`database.sql` creates database `placement_db` and inserts seven sample companies. It does not seed users, passwords, administrators, or placements. After registering the initial user, an operator must promote that account to `admin` directly in MySQL.
 
 There are no migrations. Re-running the SQL is not idempotent for seed inserts even though table creation uses `IF NOT EXISTS`.
 

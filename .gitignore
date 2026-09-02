@@ -1,5 +1,6 @@
 # Environment variables — NEVER push to GitHub
 .env
+.claude/settings.local.json
 
 # Python
 __pycache__/

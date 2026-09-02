@@ -17,13 +17,22 @@ logger = logging.getLogger(__name__)
 RESEND_API_URL = 'https://api.resend.com/emails'
 
 
+def _mask_email(email):
+    local, _, domain = email.partition('@')
+    if len(local) <= 2:
+        masked_local = local[:1] + '*' * max(len(local) - 1, 1)
+    else:
+        masked_local = local[0] + '*' * (len(local) - 2) + local[-1]
+    return f'{masked_local}@{domain}' if domain else masked_local
+
+
 def send_email(to, subject, body):
     """Best-effort send. Never raises -- callers that already treat mail
     delivery as non-critical (OTP codes, placement notifications) can
     call this without their own try/except."""
     api_key = os.environ.get('RESEND_API_KEY')
     if not api_key:
-        logger.warning('RESEND_API_KEY is not set -- email to %s was not sent', to)
+        logger.warning('RESEND_API_KEY is not set -- email to %s was not sent', _mask_email(to))
         return False
 
     from_address = os.environ.get('RESEND_FROM_EMAIL', 'Placement Analytics <onboarding@resend.dev>')
@@ -36,6 +45,9 @@ def send_email(to, subject, body):
         )
         response.raise_for_status()
         return True
-    except requests.RequestException:
-        logger.exception('Failed to send email to %s via Resend', to)
+    except requests.RequestException as exc:
+        logger.error(
+            'Failed to send email to %s via Resend (%s)',
+            _mask_email(to), type(exc).__name__,
+        )
         return False

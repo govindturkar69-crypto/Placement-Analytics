@@ -18,7 +18,7 @@ Read `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, and `docs/API.md` before changi
 | `placement_analytics/templates/` | Jinja pages with embedded CSS and JavaScript |
 | `database.sql` | Authoritative schema and sample data |
 | `tests/` | Mock-based `unittest` route and helper checks |
-| `scripts/init_passwords.py` | One-time seed-password hashing helper; see warning below |
+| `scripts/init_passwords.py` | Legacy one-time helper for hashing existing plaintext database passwords |
 
 ## Architecture and coding patterns
 

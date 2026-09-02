@@ -6,14 +6,14 @@ from flask import render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash
 
 from ..extensions import mysql
-from ..decorators import login_required, admin_required
+from ..decorators import admin_required
 from ..utils import any_blank
 from .auth import PASSWORD_RE
 
 
 def register(app):
     @app.route('/students')
-    @login_required
+    @admin_required
     def students():
         page     = request.args.get('page', 1, type=int)
         per_page = 20

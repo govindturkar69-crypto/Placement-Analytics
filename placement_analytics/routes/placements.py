@@ -11,13 +11,16 @@ def register(app):
     @login_required
     def placements():
         cur = mysql.connection.cursor()
-        cur.execute("""
-            SELECT p.placement_id, s.name, c.company_name, c.package, p.year, p.status
-            FROM placements p
-            JOIN students s ON p.student_id=s.student_id
-            JOIN companies c ON p.company_id=c.company_id
-            ORDER BY p.year DESC
-        """)
+        query = """
+                SELECT p.placement_id, s.name, c.company_name, c.package, p.year, p.status
+                FROM placements p
+                JOIN students s ON p.student_id=s.student_id
+                JOIN companies c ON p.company_id=c.company_id
+            """
+        if session.get('role') == 'admin':
+            cur.execute(query + " ORDER BY p.year DESC")
+        else:
+            cur.execute(query + " WHERE p.student_id=%s ORDER BY p.year DESC", (session['user_id'],))
         all_placements = cur.fetchall()
         cur.close()
         return render_template('placements.html', placements=all_placements, user_name=session['user_name'])

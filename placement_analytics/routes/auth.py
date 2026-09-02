@@ -9,7 +9,7 @@ from flask import render_template, request, redirect, url_for, session, flash, R
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-from ..email import send_email
+from ..email import _mask_email, send_email
 from ..extensions import mysql, limiter, oauth
 
 logger = logging.getLogger(__name__)
@@ -32,16 +32,6 @@ INVALID_OTP_MESSAGE = 'That code is incorrect or has expired. Please try again o
 
 def _generate_otp():
     return ''.join(secrets.choice('0123456789') for _ in range(OTP_LENGTH))
-
-
-def _mask_email(email):
-    """For logs and the Verify OTP screen -- never the full address."""
-    local, _, domain = email.partition('@')
-    if len(local) <= 2:
-        masked_local = local[:1] + '*' * max(len(local) - 1, 1)
-    else:
-        masked_local = local[0] + '*' * (len(local) - 2) + local[-1]
-    return f'{masked_local}@{domain}' if domain else masked_local
 
 
 def _send_otp_email(email, name, otp):

@@ -32,7 +32,7 @@ Google callback query parameters and provider error shapes are handled by Authli
 | --- | --- | --- | --- |
 | `GET /dashboard` | Counts, package aggregates, recent rows, role-specific notifications | A | `200` dashboard |
 | `GET /companies` | All companies ordered by visit date | A | `200` list |
-| `GET /placements` | Joined placement rows ordered by year | A | `200` list; current SQL is not student-scoped |
+| `GET /placements` | Joined placement rows ordered by year | A | `200` list; admins see all rows and students see only their own |
 | `GET, POST /predict` | `cgpa`, comma-separated `skills`, `branch`, integer `backlogs`, `internship=yes/no`, integer `projects` | A | `200`; POST calculates deterministic scores; parsing errors flash and render |
 | `GET /profile` | Session user ID | A | `200` profile and own placement rows |
 | `GET, POST /change_password` | `current_password`, `new_password`, `confirm_password` | A | Valid POST updates password and redirects profile; errors rerender; POST limited 5/min |
@@ -61,7 +61,7 @@ Admin authorization failures redirect dashboard; anonymous access redirects logi
 
 ### `GET /api/stats`
 
-- Authentication: any logged-in user.
+- Authentication: any logged-in user. Admins receive global aggregates; students receive only their own placement aggregates.
 - Parameters/body: none.
 - Side effects: database reads only.
 - Success: `200 application/json`.
@@ -80,4 +80,3 @@ Values above illustrate the response shape using derivable sample concepts; live
 ## Error behavior
 
 Unknown routes render `404.html`; unhandled exceptions render `500.html`. Rate limiting flashes and redirects to login. Oversized requests redirect to a same-origin referrer or dashboard. CSRF errors redirect to a same-origin referrer or login. Database connectivity and most uncaught query errors become `500`; no JSON-specific error envelope exists.
-

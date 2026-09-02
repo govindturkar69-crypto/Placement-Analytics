@@ -113,6 +113,15 @@ class AccessControlBoundaryTests(AppTestCase):
         self.assertIn('/dashboard', response.headers.get('Location', ''))
         self.assertTrue(any('Access denied' in msg for _, msg in self.flashes()))
 
+    def test_student_cannot_reach_student_directory(self):
+        connection, _ = mock_connection()
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
+            response = self.client.get('/students')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/dashboard', response.headers.get('Location', ''))
+        connection.cursor.assert_not_called()
+
     def test_logged_out_user_is_sent_to_login_not_dashboard(self):
         with self.client.session_transaction() as sess:
             sess.clear()

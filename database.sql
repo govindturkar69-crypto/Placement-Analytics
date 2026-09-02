@@ -53,16 +53,8 @@ CREATE TABLE IF NOT EXISTS password_otps (
     INDEX idx_password_otps_email (email)
 );
 
--- Sample Data (passwords are plain text here — run `python scripts/init_passwords.py` after import)
-INSERT INTO students (name, email, branch, cgpa, skills, password, role) VALUES
-('Admin User', 'admin@placement.com', 'CSE', 9.0, 'Python, SQL, Management', 'admin123', 'admin'),
-('Govind Sharma', 'govind@example.com', 'CSE', 8.5, 'Python, Java, MySQL', 'admin123', 'student'),
-('Priya Patel', 'priya@example.com', 'CSE', 9.1, 'React, Node.js, Python', 'admin123', 'student'),
-('Rahul Verma', 'rahul@example.com', 'IT', 7.8, 'Java, Spring Boot, SQL', 'admin123', 'student'),
-('Sneha Gupta', 'sneha@example.com', 'ECE', 8.2, 'C++, Python, ML', 'admin123', 'student'),
-('Amit Kumar', 'amit@example.com', 'CSE', 7.5, 'Java, HTML, CSS', 'admin123', 'student'),
-('Pooja Singh', 'pooja@example.com', 'IT', 8.9, 'Python, Django, PostgreSQL', 'admin123', 'student');
-
+-- Sample company data. User accounts are never seeded; register an account and
+-- promote it out-of-band with: UPDATE students SET role='admin' WHERE email='your-admin@example.com';
 INSERT INTO companies (company_name, package, required_skills, visit_date) VALUES
 ('TCS', 7.5, 'Java, Python, SQL', '2024-01-15'),
 ('Infosys', 6.5, 'Java, Communication', '2024-01-20'),
@@ -71,14 +63,3 @@ INSERT INTO companies (company_name, package, required_skills, visit_date) VALUE
 ('Amazon', 32.0, 'Java, DSA, Cloud', '2024-02-15'),
 ('Microsoft', 38.0, 'C++, Java, DSA', '2024-02-20'),
 ('Accenture', 8.5, 'Any, Communication', '2024-03-01');
-
-INSERT INTO placements (student_id, company_id, year, status) VALUES
-(1, 4, 2024, 'Selected'),
-(2, 5, 2024, 'Selected'),
-(3, 1, 2024, 'Selected'),
-(4, 3, 2024, 'Selected'),
-(5, 2, 2024, 'Selected'),
-(6, 7, 2024, 'Selected'),
-(1, 6, 2023, 'Selected'),
-(2, 4, 2023, 'Selected'),
-(3, 2, 2023, 'Selected');

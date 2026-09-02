@@ -11,11 +11,14 @@ from placement_analytics.email import send_email
 class SendEmailTests(unittest.TestCase):
     def test_returns_false_and_does_not_call_requests_when_api_key_missing(self):
         with patch.dict('os.environ', {}, clear=True), \
-             patch('placement_analytics.email.requests.post') as mock_post:
+             patch('placement_analytics.email.requests.post') as mock_post, \
+             self.assertLogs('placement_analytics.email', level='WARNING') as logs:
             result = send_email('student@example.com', 'Subject', 'Body')
 
         self.assertFalse(result)
         mock_post.assert_not_called()
+        self.assertIn('s*****t@example.com', logs.output[0])
+        self.assertNotIn('student@example.com', logs.output[0])
 
     def test_sends_via_resend_api_with_the_right_payload(self):
         mock_response = MagicMock()
@@ -35,10 +38,14 @@ class SendEmailTests(unittest.TestCase):
     def test_network_failure_returns_false_instead_of_raising(self):
         import requests
         with patch.dict('os.environ', {'RESEND_API_KEY': 'test-key'}), \
-             patch('placement_analytics.email.requests.post', side_effect=requests.RequestException('boom')):
+             patch('placement_analytics.email.requests.post',
+                   side_effect=requests.RequestException('student@example.com failed')), \
+             self.assertLogs('placement_analytics.email', level='ERROR') as logs:
             result = send_email('student@example.com', 'Subject', 'Body')
 
         self.assertFalse(result)
+        self.assertIn('s*****t@example.com', logs.output[0])
+        self.assertNotIn('student@example.com', '\n'.join(logs.output))
 
 
 if __name__ == '__main__':
