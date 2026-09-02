@@ -9,7 +9,7 @@ import unittest
 from unittest.mock import PropertyMock, patch
 
 from flask import redirect
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 from tests._helpers import mock_connection
 
@@ -66,7 +66,7 @@ class GoogleLoginTests(unittest.TestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (7, 'Alice', 'student')
         with self._configured(), \
-             patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+             patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch.object(
                  oauth.google, 'authorize_access_token',
                  return_value={'userinfo': {'email': 'alice@example.com'}},
@@ -85,7 +85,7 @@ class GoogleLoginTests(unittest.TestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = None
         with self._configured(), \
-             patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+             patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch.object(
                  oauth.google, 'authorize_access_token',
                  return_value={'userinfo': {'email': 'stranger@example.com'}},

@@ -10,7 +10,7 @@ from unittest.mock import PropertyMock, patch
 from tests._helpers import AppTestCase, mock_connection
 
 import pymysql
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 class DeleteRouteTests(AppTestCase):
@@ -20,7 +20,7 @@ class DeleteRouteTests(AppTestCase):
                 1451, "Cannot delete or update a parent row: a foreign key constraint fails"
             )
         )
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/delete_student/7')
 
         self.assertEqual(response.status_code, 302)
@@ -35,7 +35,7 @@ class DeleteRouteTests(AppTestCase):
                 1451, "Cannot delete or update a parent row: a foreign key constraint fails"
             )
         )
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/delete_company/3')
 
         self.assertEqual(response.status_code, 302)
@@ -46,7 +46,7 @@ class DeleteRouteTests(AppTestCase):
 
     def test_delete_student_without_placements_still_succeeds(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/delete_student/7')
 
         self.assertEqual(response.status_code, 302)
@@ -56,7 +56,7 @@ class DeleteRouteTests(AppTestCase):
 
     def test_delete_company_without_placements_still_succeeds(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/delete_company/3')
 
         self.assertEqual(response.status_code, 302)

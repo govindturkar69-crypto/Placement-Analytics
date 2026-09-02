@@ -10,7 +10,7 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 from werkzeug.security import generate_password_hash
 
 
@@ -18,7 +18,7 @@ class ChangePasswordTests(AppTestCase):
     def test_wrong_current_password_is_rejected(self):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (generate_password_hash('the-real-password'),)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/change_password', data={
                 'current_password': 'a-wrong-guess',
                 'new_password': 'newpassword123',
@@ -32,7 +32,7 @@ class ChangePasswordTests(AppTestCase):
     def test_too_short_new_password_is_rejected(self):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (generate_password_hash('correct-current-password'),)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/change_password', data={
                 'current_password': 'correct-current-password',
                 'new_password': 'abc',
@@ -46,7 +46,7 @@ class ChangePasswordTests(AppTestCase):
     def test_mismatched_confirmation_is_rejected(self):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (generate_password_hash('correct-current-password'),)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/change_password', data={
                 'current_password': 'correct-current-password',
                 'new_password': 'newpassword123',
@@ -60,7 +60,7 @@ class ChangePasswordTests(AppTestCase):
     def test_valid_change_succeeds(self):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (generate_password_hash('correct-current-password'),)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/change_password', data={
                 'current_password': 'correct-current-password',
                 'new_password': 'newpassword123',

@@ -47,7 +47,7 @@ Fixtures are constructed in code; there are no fixture files. External systems a
 - No OAuth provider contract, Resend network contract, CDN availability, deployment, or proxy topology is exercised.
 - No browser layout, mobile navigation, JavaScript filtering/form submission, Chart.js rendering, keyboard navigation, or accessibility automation exists.
 - Boundary validation is incomplete for admin CGPA/package/year/status and predictor negative/out-of-range values, mirroring implementation gaps.
-- The seed password initialization script is not tested and has a dependency mismatch.
+- The seed password initialization script is not tested.
 
 ## Verification procedure
 

@@ -3,7 +3,7 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 from werkzeug.security import generate_password_hash
 
 
@@ -28,7 +28,7 @@ class RegisterTests(unittest.TestCase):
 
     def test_missing_fields_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'test@example.com',
@@ -39,7 +39,7 @@ class RegisterTests(unittest.TestCase):
 
     def test_invalid_email_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'invalid-email',
@@ -53,7 +53,7 @@ class RegisterTests(unittest.TestCase):
 
     def test_invalid_cgpa_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'test@example.com',
@@ -67,7 +67,7 @@ class RegisterTests(unittest.TestCase):
 
     def test_weak_password_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'test@example.com',
@@ -81,7 +81,7 @@ class RegisterTests(unittest.TestCase):
 
     def test_mismatched_password_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'test@example.com',
@@ -95,7 +95,7 @@ class RegisterTests(unittest.TestCase):
 
     def test_valid_registration_success(self):
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'test@example.com',
@@ -117,7 +117,7 @@ class RegisterTests(unittest.TestCase):
                 raise pymysql.err.IntegrityError(1062, "Duplicate entry 'test@example.com' for key 'students.email'")
             
         connection, cursor = mock_connection(execute_side_effect=mock_execute)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register', data={
                 'name': 'Test User',
                 'email': 'test@example.com',

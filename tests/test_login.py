@@ -6,7 +6,7 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 from werkzeug.security import generate_password_hash
 
 
@@ -25,7 +25,7 @@ class LoginTests(unittest.TestCase):
         stored_hash = generate_password_hash('correct-horse-battery-staple')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Alice', 'student', stored_hash)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/login', data={
                 'email': 'alice@example.com',
                 'password': 'correct-horse-battery-staple',
@@ -42,7 +42,7 @@ class LoginTests(unittest.TestCase):
         stored_hash = generate_password_hash('the-real-password')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Alice', 'student', stored_hash)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/login', data={
                 'email': 'alice@example.com',
                 'password': 'a-wrong-guess',
@@ -56,7 +56,7 @@ class LoginTests(unittest.TestCase):
     def test_nonexistent_email_gives_the_same_generic_error(self):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = None
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/login', data={
                 'email': 'nobody@example.com',
                 'password': 'whatever',
@@ -67,7 +67,7 @@ class LoginTests(unittest.TestCase):
 
     def test_blank_fields_are_rejected_before_touching_db(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/login', data={'email': '', 'password': ''})
 
         self.assertEqual(response.status_code, 200)
@@ -77,7 +77,7 @@ class LoginTests(unittest.TestCase):
         stored_hash = generate_password_hash('correct-horse-battery-staple')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Alice', 'student', stored_hash)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             self.client.post('/login', data={
                 'email': 'alice@example.com',
                 'password': 'correct-horse-battery-staple',
@@ -91,7 +91,7 @@ class LoginTests(unittest.TestCase):
         stored_hash = generate_password_hash('correct-horse-battery-staple')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Alice', 'student', stored_hash)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             self.client.post('/login', data={
                 'email': 'alice@example.com',
                 'password': 'correct-horse-battery-staple',

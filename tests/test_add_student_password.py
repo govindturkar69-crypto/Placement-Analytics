@@ -9,13 +9,13 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 class AddStudentPasswordTests(AppTestCase):
     def test_blank_password_is_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_student', data={
                 'name': 'New Student',
                 'email': 'fresh@example.com',
@@ -31,7 +31,7 @@ class AddStudentPasswordTests(AppTestCase):
 
     def test_short_password_is_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_student', data={
                 'name': 'New Student',
                 'email': 'fresh@example.com',
@@ -47,7 +47,7 @@ class AddStudentPasswordTests(AppTestCase):
 
     def test_valid_password_still_succeeds(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_student', data={
                 'name': 'New Student',
                 'email': 'fresh@example.com',

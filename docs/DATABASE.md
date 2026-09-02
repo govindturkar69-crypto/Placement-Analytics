@@ -119,7 +119,7 @@ The schema says deleting a student or company cascades related placements. Route
 
 ## Seeds and migrations
 
-`database.sql` creates database `placement_db` and inserts seven students, seven companies, and nine placements. Seed passwords are stored as plaintext values; the comment directs operators to run `scripts/init_passwords.py`. The literal values are intentionally omitted here. That script currently imports the unpinned/unused `flask_mysqldb` package and therefore cannot be assumed to work after a clean `requirements.txt` install.
+`database.sql` creates database `placement_db` and inserts seven students, seven companies, and nine placements. Seed passwords are stored as plaintext values; the comment directs operators to run `scripts/init_passwords.py`. The literal values are intentionally omitted here.
 
 There are no migrations. Re-running the SQL is not idempotent for seed inserts even though table creation uses `IF NOT EXISTS`.
 

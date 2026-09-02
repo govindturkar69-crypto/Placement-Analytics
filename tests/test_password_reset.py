@@ -10,7 +10,7 @@ from unittest.mock import PropertyMock, patch
 from tests._helpers import mock_connection
 
 import app as app_module
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 from werkzeug.security import generate_password_hash
 
 
@@ -37,7 +37,7 @@ class OtpFlowTestCase(unittest.TestCase):
 class ForgotPasswordTests(OtpFlowTestCase):
     def test_invalid_email_format_is_rejected_before_touching_db(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/forgot_password', data={'email': 'not-an-email'})
 
         self.assertEqual(response.status_code, 200)
@@ -47,7 +47,7 @@ class ForgotPasswordTests(OtpFlowTestCase):
     def test_matched_email_issues_an_otp_and_redirects_to_verify(self):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Test User')
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch('placement_analytics.routes.auth.send_email') as mock_send:
             response = self.client.post('/forgot_password', data={'email': 'test@example.com'})
 
@@ -64,7 +64,7 @@ class ForgotPasswordTests(OtpFlowTestCase):
         which emails have accounts."""
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = None
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch('placement_analytics.routes.auth.send_email') as mock_send:
             response = self.client.post('/forgot_password', data={'email': 'nobody@example.com'})
 
@@ -86,7 +86,7 @@ class VerifyOtpTests(OtpFlowTestCase):
         self._set_reset_session()
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = None
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/verify_otp', data={'otp': '123456'})
 
         self.assertEqual(response.status_code, 200)
@@ -97,7 +97,7 @@ class VerifyOtpTests(OtpFlowTestCase):
         otp_hash = generate_password_hash('123456')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (99, otp_hash, datetime.now() + timedelta(minutes=5), 0)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/verify_otp', data={'otp': '123456'})
 
         self.assertEqual(response.status_code, 302)
@@ -112,7 +112,7 @@ class VerifyOtpTests(OtpFlowTestCase):
         otp_hash = generate_password_hash('123456')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (99, otp_hash, datetime.now() + timedelta(minutes=5), 0)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/verify_otp', data={'otp': '000000'})
 
         self.assertEqual(response.status_code, 200)
@@ -125,7 +125,7 @@ class VerifyOtpTests(OtpFlowTestCase):
         otp_hash = generate_password_hash('123456')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (99, otp_hash, datetime.now() - timedelta(minutes=1), 0)
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/verify_otp', data={'otp': '123456'})
 
         self.assertEqual(response.status_code, 200)
@@ -138,7 +138,7 @@ class VerifyOtpTests(OtpFlowTestCase):
         otp_hash = generate_password_hash('123456')
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (99, otp_hash, datetime.now() + timedelta(minutes=5), 5)  # already at the cap
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/verify_otp', data={'otp': '123456'})
 
         self.assertEqual(response.status_code, 200)
@@ -157,7 +157,7 @@ class ResendOtpTests(OtpFlowTestCase):
     def test_within_cooldown_is_rejected_without_touching_the_db(self):
         self._set_reset_session(last_sent=datetime.now())
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/resend_otp')
 
         self.assertEqual(response.status_code, 302)
@@ -169,7 +169,7 @@ class ResendOtpTests(OtpFlowTestCase):
         self._set_reset_session(last_sent=datetime.now() - timedelta(minutes=5), resend_count=0)
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (1, 'Test User')
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch('placement_analytics.routes.auth.send_email') as mock_send:
             response = self.client.post('/resend_otp')
 
@@ -182,7 +182,7 @@ class ResendOtpTests(OtpFlowTestCase):
     def test_resend_limit_reached_sends_the_user_back_to_forgot_password(self):
         self._set_reset_session(last_sent=datetime.now() - timedelta(minutes=5), resend_count=3)
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/resend_otp')
 
         self.assertEqual(response.status_code, 302)
@@ -215,7 +215,7 @@ class ResetPasswordTests(OtpFlowTestCase):
     def test_weak_password_is_rejected(self):
         self._set_reset_session(verified_at=datetime.now())
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/reset_password', data={
                 'password': 'alllowercase', 'confirm_password': 'alllowercase',
             })
@@ -227,7 +227,7 @@ class ResetPasswordTests(OtpFlowTestCase):
     def test_mismatched_confirmation_is_rejected(self):
         self._set_reset_session(verified_at=datetime.now())
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/reset_password', data={
                 'password': 'newpass123', 'confirm_password': 'somethingelse456',
             })
@@ -239,7 +239,7 @@ class ResetPasswordTests(OtpFlowTestCase):
     def test_valid_password_updates_clears_otps_and_the_session(self):
         self._set_reset_session(verified_at=datetime.now())
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/reset_password', data={
                 'password': 'newpass123', 'confirm_password': 'newpass123',
             })
@@ -262,7 +262,7 @@ class FullOtpJourneyTests(OtpFlowTestCase):
         fixed_otp = '123456'
         otp_hash = generate_password_hash(fixed_otp)
 
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch('placement_analytics.routes.auth.send_email'), \
              patch('placement_analytics.routes.auth._generate_otp', return_value=fixed_otp):
             cursor.fetchone.return_value = (1, 'Test User')

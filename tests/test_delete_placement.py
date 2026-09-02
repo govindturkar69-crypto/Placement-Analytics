@@ -9,14 +9,14 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 class DeletePlacementTests(AppTestCase):
     def test_existing_placement_deletes_successfully(self):
         connection, cursor = mock_connection()
         cursor.rowcount = 1
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/delete_placement/1')
 
         self.assertEqual(response.status_code, 302)
@@ -26,7 +26,7 @@ class DeletePlacementTests(AppTestCase):
     def test_already_deleted_placement_shows_honest_message(self):
         connection, cursor = mock_connection()
         cursor.rowcount = 0
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/delete_placement/999')
 
         self.assertEqual(response.status_code, 302)

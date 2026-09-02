@@ -15,7 +15,7 @@ import unittest
 from unittest.mock import PropertyMock, patch
 
 from flask import redirect
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 from tests._helpers import mock_connection
 
@@ -82,7 +82,7 @@ class GoogleRegisterTests(unittest.TestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = (5, 'Bob', 'student')
         with self._configured(), \
-             patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+             patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch.object(
                  oauth.google, 'authorize_access_token',
                  return_value={'userinfo': {'email': 'bob@gmail.com', 'name': 'Bob'}},
@@ -100,7 +100,7 @@ class GoogleRegisterTests(unittest.TestCase):
         connection, cursor = mock_connection()
         cursor.fetchone.return_value = None   # no existing account
         with self._configured(), \
-             patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+             patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch.object(
                  oauth.google, 'authorize_access_token',
                  return_value={'userinfo': {'email': 'newuser@gmail.com', 'name': 'New User'}},
@@ -186,7 +186,7 @@ class GoogleRegisterTests(unittest.TestCase):
             sess['google_pending_email'] = 'newstudent@gmail.com'
             sess['google_pending_name']  = 'New Student'
 
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/register/google/complete', data={
                 'branch': 'CSE',
                 'cgpa':   '8.0',

@@ -81,8 +81,6 @@ python -m unittest discover -s tests -v
 - Rate limiting is per process and resets on restart.
 - Predictor logic is deterministic, hard-coded, and uncalibrated; it is not machine learning.
 - Templates contain substantial inline CSS/JavaScript and CDN dependencies.
-- The `scripts/init_passwords.py` helper imports `flask_mysqldb`, absent from `requirements.txt`, while the application now uses a local PyMySQL wrapper.
 - The SQL schema declares cascading placement deletes, while route messages anticipate foreign-key restriction; deployed behavior depends on actual production schema.
 - No content-security-policy header is configured.
 - No live database, OAuth, email, browser, load, or deployment tests are present.
-

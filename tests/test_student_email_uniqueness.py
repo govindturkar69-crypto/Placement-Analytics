@@ -11,7 +11,7 @@ from unittest.mock import PropertyMock, patch
 from tests._helpers import AppTestCase, mock_connection
 
 import pymysql
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 def _duplicate_entry_error():
@@ -23,7 +23,7 @@ def _duplicate_entry_error():
 class StudentEmailUniquenessTests(AppTestCase):
     def test_add_student_with_duplicate_email_shows_friendly_error(self):
         connection, _ = mock_connection(execute_side_effect=_duplicate_entry_error())
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_student', data={
                 'name': 'New Student',
                 'email': 'taken@example.com',
@@ -43,7 +43,7 @@ class StudentEmailUniquenessTests(AppTestCase):
 
     def test_add_student_with_new_email_still_succeeds(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_student', data={
                 'name': 'New Student',
                 'email': 'fresh@example.com',
@@ -60,7 +60,7 @@ class StudentEmailUniquenessTests(AppTestCase):
 
     def test_edit_student_with_duplicate_email_shows_friendly_error(self):
         connection, _ = mock_connection(execute_side_effect=_duplicate_entry_error())
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/edit_student/5', data={
                 'name': 'Existing Student',
                 'email': 'taken@example.com',

@@ -11,7 +11,7 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 def _csv_file(content):
@@ -26,7 +26,7 @@ class UploadCsvTests(AppTestCase):
             "Bob,bob@example.com,IT,7.9,Java,secret123\n"
         )
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post(
                 '/upload_csv',
                 data={'csv_file': _csv_file(csv_content)},
@@ -50,7 +50,7 @@ class UploadCsvTests(AppTestCase):
             "Bad,bad@example.com,CSE,not-a-number,Python,secret123\n"
         )
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post(
                 '/upload_csv',
                 data={'csv_file': _csv_file(csv_content)},
@@ -66,7 +66,7 @@ class UploadCsvTests(AppTestCase):
     def test_missing_required_column_is_rejected_before_touching_db(self):
         csv_content = "name,email,branch\nAlice,alice@example.com,CSE\n"
         connection, cursor = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post(
                 '/upload_csv',
                 data={'csv_file': _csv_file(csv_content)},
@@ -79,7 +79,7 @@ class UploadCsvTests(AppTestCase):
 
     def test_non_csv_file_is_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post(
                 '/upload_csv',
                 data={'csv_file': (io.BytesIO(b'not a csv'), 'students.txt')},

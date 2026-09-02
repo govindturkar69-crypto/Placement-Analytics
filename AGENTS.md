@@ -55,7 +55,7 @@ Read `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, and `docs/API.md` before changi
 - MySQL access is implemented by the local `MySQL` wrapper in `extensions.py`, not Flask-MySQLdb.
 - `students.email` is unique. Placement rows reference students and companies.
 - `database.sql` declares cascading foreign keys, while delete routes also handle integrity errors. Verify behavior against the deployed schema before relying on either outcome.
-- `scripts/init_passwords.py` still imports `flask_mysqldb`, which is not in `requirements.txt`; do not claim the script works in a clean environment without verifying or correcting that separately.
+- `scripts/init_passwords.py` uses the same local PyMySQL wrapper as the application.
 
 ## Testing and verification
 
@@ -75,4 +75,3 @@ Tests mock MySQL and disable CSRF/rate limiting where needed; they are route/uni
 - Relevant tests pass; unrun verification is explicitly reported.
 - Documentation is updated when routes, schema, configuration, workflows, or commands change.
 - `git diff` contains no secrets, generated artifacts, or unrelated edits.
-

@@ -12,7 +12,7 @@ from unittest.mock import PropertyMock, patch
 from tests._helpers import AppTestCase, mock_connection
 
 import pymysql
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 class AddPlacementTests(AppTestCase):
@@ -22,7 +22,7 @@ class AddPlacementTests(AppTestCase):
                 1452, "Cannot add or update a child row: a foreign key constraint fails"
             )
         )
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_placement', data={
                 'student_id': '999',
                 'company_id': '1',
@@ -38,7 +38,7 @@ class AddPlacementTests(AppTestCase):
 
     def test_non_numeric_year_is_rejected_before_touching_db(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_placement', data={
                 'student_id': '1',
                 'company_id': '1',
@@ -55,7 +55,7 @@ class AddPlacementTests(AppTestCase):
         cursor.fetchone.side_effect = [('Govind', 'govind@example.com'), ('TCS', 7.5)]
         # Without this mock a passing test would attempt a real HTTPS call to
         # Resend for the placement-confirmation email.
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection), \
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection), \
              patch('placement_analytics.routes.placements.send_email') as mock_send:
             response = self.client.post('/add_placement', data={
                 'student_id': '1',

@@ -11,7 +11,7 @@ from unittest.mock import PropertyMock, patch
 
 from tests._helpers import AppTestCase, mock_connection
 
-from flask_mysqldb import MySQL
+from placement_analytics.extensions import MySQL
 
 
 class AnyBlankHelperTests(unittest.TestCase):
@@ -29,7 +29,7 @@ class AnyBlankHelperTests(unittest.TestCase):
 class AddStudentRequiredFieldsTests(AppTestCase):
     def test_blank_name_is_rejected_before_touching_db(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_student', data={
                 'name': '  ', 'email': 'x@example.com', 'branch': 'CSE',
                 'cgpa': '8.0', 'skills': 'Python', 'password': 'secret123',
@@ -43,7 +43,7 @@ class AddStudentRequiredFieldsTests(AppTestCase):
 class EditStudentRequiredFieldsTests(AppTestCase):
     def test_blank_email_is_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/edit_student/1', data={
                 'name': 'Alice', 'email': '', 'branch': 'CSE',
                 'cgpa': '8.0', 'skills': 'Python',
@@ -57,7 +57,7 @@ class EditStudentRequiredFieldsTests(AppTestCase):
 class AddCompanyRequiredFieldsTests(AppTestCase):
     def test_blank_company_name_is_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/add_company', data={
                 'company_name': '', 'package': '10',
                 'required_skills': 'Python', 'visit_date': '2024-01-01',
@@ -71,7 +71,7 @@ class AddCompanyRequiredFieldsTests(AppTestCase):
 class EditCompanyRequiredFieldsTests(AppTestCase):
     def test_blank_company_name_is_rejected(self):
         connection, _ = mock_connection()
-        with patch.object(MySQL, 'connect', new_callable=PropertyMock, return_value=connection):
+        with patch.object(MySQL, 'connection', new_callable=PropertyMock, return_value=connection):
             response = self.client.post('/edit_company/1', data={
                 'company_name': '   ', 'package': '10',
                 'required_skills': 'Python', 'visit_date': '2024-01-01',
